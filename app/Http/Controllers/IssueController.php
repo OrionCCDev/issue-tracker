@@ -1,0 +1,468 @@
+<?php
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use App\Models\Issue;
+use App\Models\Project;
+use App\Events\IssueCreated;
+use App\Events\IssueUpdated;
+use App\Services\NotificationService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use App\Models\IssueHistory;
+
+class IssueController extends Controller
+{
+    /**
+     * Get the count of pending issues (issues that are open or in progress)
+     */
+    public static function getPendingIssuesCount()
+    {
+        return Issue::whereIn('status', ['open', 'in_progress'])->count();
+    }
+
+    /**
+     * Get the count of unread issues
+     */
+    public static function getUnreadIssuesCount()
+    {
+        return Issue::where('is_read', false)->count();
+    }
+
+    public function index(Request $request)
+    {
+        $query = Issue::query()->with(['creator', 'assignees', 'project']);
+
+        // Apply filters if present
+        if ($request->has('project_id') && $request->project_id) {
+            $query->where('project_id', $request->project_id);
+        }
+
+        if ($request->has('status') && $request->status) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->has('priority') && $request->priority) {
+            $query->where('priority', $request->priority);
+        }
+
+        if ($request->has('assigned_to') && $request->assigned_to) {
+            if ($request->assigned_to === 'unassigned') {
+                $query->whereDoesntHave('assignees');
+            } else {
+                $query->whereHas('assignees', function($q) use ($request) {
+                    $q->where('user_id', $request->assigned_to);
+                });
+            }
+        }
+
+        $issues = $query->latest()->paginate(15);
+        $projects = Project::all();
+        $users = User::all();
+
+        return view('issues.index', compact('issues', 'projects', 'users'));
+    }
+
+    public function projectIssues(Project $project)
+    {
+        return $this->index(request());
+    }
+
+    public function createProjectIssue(Project $project)
+    {
+        $members = User::all();
+        return view('issues.create', compact('project', 'members'));
+    }
+
+    public function create(Project $project)
+    {
+        $members = User::all();
+
+        return view('issues.create', compact('project', 'members'));
+    }
+
+    public function store(Request $request, Project $project = null)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'project_id' => $project ? 'nullable' : 'required|exists:projects,id',
+            'status' => 'required|in:open,in_progress,review,resolved,closed',
+            'priority' => 'required|in:low,medium,high,critical',
+            'assigned_to' => 'nullable|array',
+            'assigned_to.*' => 'exists:users,id',
+            'target_resolution_date' => 'nullable|date',
+            'actual_resolution_date' => 'nullable|date',
+            'notes' => 'nullable|string',
+        ]);
+
+        // Set project_id if a Project is injected
+        if ($project) {
+            $validated['project_id'] = $project->id;
+        }
+
+        // Create the issue with the creator
+        $validated['created_by'] = Auth::id();
+        $validated['is_read'] = false; // Mark as unread for notifications
+
+        $issue = Issue::create($validated);
+
+        // Load the project relationship
+        $issue->load('project');
+
+        // Sync assignees if there are any
+        if (!empty($validated['assigned_to'])) {
+            $issue->assignees()->sync($validated['assigned_to']);
+        }
+
+        // Get all users to notify
+        $usersToNotify = collect();
+
+        // Get all GM users
+        $usersToNotify = $usersToNotify->merge(User::where('role', 'gm')->get());
+
+        // Get all CM users
+        $usersToNotify = $usersToNotify->merge(User::where('role', 'cm')->get());
+
+        // Get project manager
+        $usersToNotify->push($issue->project->manager);
+
+        // Get all assignable users for this issue
+        $usersToNotify = $usersToNotify->merge($issue->assignees);
+
+        // Remove duplicates and the issue creator
+        $usersToNotify = $usersToNotify->unique('id')->where('id', '!=', Auth::id());
+
+        // Send notifications
+        NotificationService::notifyMany(
+            $usersToNotify,
+            'issue_created',
+            $issue,
+            [
+                'title' => 'New Issue Created',
+                'message' => Auth::user()->name . ' created a new issue "' . $issue->title . '"',
+                'url' => route('projects.issues.show', [$issue->project_id, $issue->id])
+            ]
+        );
+
+        // Create initial history entry
+        IssueHistory::create([
+            'issue_id' => $issue->id,
+            'updated_by' => Auth::id(),
+            'title' => $issue->title,
+            'description' => $issue->description,
+            'priority' => $issue->priority,
+            'status' => $issue->status,
+            'target_resolution_date' => $issue->target_resolution_date,
+            'actual_resolution_date' => $issue->actual_resolution_date,
+            'notes' => $issue->notes,
+            'changes' => json_encode(['initial_creation' => true])
+        ]);
+
+        // Broadcast to all users through the event
+        try {
+            event(new IssueCreated($issue->load('creator', 'assignees')));
+        } catch (\Exception $e) {
+            Log::error('Failed to broadcast issue creation: ' . $e->getMessage());
+        }
+
+        if ($project) {
+            return redirect()
+                ->route('projects.issues.show', ['project' => $project, 'issue' => $issue->id])
+                ->with('success', 'Issue created successfully.');
+        } else {
+            return redirect()
+                ->route('issues.show', $issue->id)
+                ->with('success', 'Issue created successfully.');
+        }
+    }
+
+    public function getIssue(Issue $issue)
+    {
+        $issue->load(['assignees', 'project']);
+
+        return response()->json([
+            'success' => true,
+            'issue' => $issue
+        ]);
+    }
+
+    public function storeProjectIssue(Request $request, Project $project)
+    {
+        return $this->store($request, $project);
+    }
+
+    public function show($issueOrProject, $issue = null)
+    {
+        // If $issueOrProject is a Project and $issue is provided, we're in the project.issue.show route
+        if ($issueOrProject instanceof Project && $issue) {
+            $project = $issueOrProject;
+            // $issue is the ID in this case, so we need to find the actual Issue
+            $issue = Issue::findOrFail($issue);
+        }
+        // If $issueOrProject is an Issue, we're in the issue.show route
+        elseif ($issueOrProject instanceof Issue) {
+            $issue = $issueOrProject;
+            $project = $issue->project;
+        }
+        // If $issueOrProject is an ID (string/int), we're in the issue.show route
+        else {
+            $issue = Issue::findOrFail($issueOrProject);
+            $project = $issue->project;
+        }
+
+        // Mark the issue as read when viewed
+        if (!$issue->is_read) {
+            $issue->update(['is_read' => true]);
+        }
+
+        $issue->load(['comments.user', 'creator', 'assignees', 'project']);
+
+        return view('issues.show', compact('issue', 'project'));
+    }
+
+    public function edit(Issue $issue)
+    {
+        $users = User::all();
+        return view('issues.edit', compact('issue', 'users'));
+    }
+
+    public function update(Request $request, Issue $issue)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'status' => 'required|in:open,in_progress,review,resolved,closed',
+            'priority' => 'required|in:low,medium,high,critical',
+            'assigned_to' => 'nullable|array',
+            'assigned_to.*' => 'exists:users,id',
+            'target_resolution_date' => 'nullable|date',
+            'actual_resolution_date' => 'nullable|date',
+            'notes' => 'nullable|string',
+        ]);
+
+        // Save previous assignees to compare
+        $previousAssignees = $issue->assignees()->pluck('user_id')->toArray();
+
+        // Track changes for history
+        $changes = [];
+        foreach ($validated as $key => $value) {
+            if ($key !== 'assigned_to' && $issue->{$key} != $value) {
+                $changes[$key] = [
+                    'from' => $issue->{$key},
+                    'to' => $value
+                ];
+            }
+        }
+
+        // Update the issue
+        $issue->update($validated);
+
+        // Sync assignees
+        if (isset($validated['assigned_to'])) {
+            $issue->assignees()->sync($validated['assigned_to']);
+        }
+
+        // Get all users to notify
+        $usersToNotify = collect();
+
+        // Get all GM users
+        $usersToNotify = $usersToNotify->merge(User::where('role', 'gm')->get());
+
+        // Get all CM users
+        $usersToNotify = $usersToNotify->merge(User::where('role', 'cm')->get());
+
+        // Get project manager
+        $usersToNotify->push($issue->project->manager);
+
+        // Get all assignable users for this issue
+        $usersToNotify = $usersToNotify->merge($issue->assignees);
+
+        // Remove duplicates and the issue updater
+        $usersToNotify = $usersToNotify->unique('id')->where('id', '!=', Auth::id());
+
+        // Send notifications
+        NotificationService::notifyMany(
+            $usersToNotify,
+            'issue_updated',
+            $issue,
+            [
+                'title' => 'Issue Updated',
+                'message' => Auth::user()->name . ' updated issue "' . $issue->title . '"',
+                'url' => route('projects.issues.show', [$issue->project_id, $issue->id])
+            ]
+        );
+
+        // Create history entry if there are changes
+        if (!empty($changes)) {
+            IssueHistory::create([
+                'issue_id' => $issue->id,
+                'updated_by' => Auth::id(),
+                'title' => $issue->title,
+                'description' => $issue->description,
+                'priority' => $issue->priority,
+                'status' => $issue->status,
+                'target_resolution_date' => $issue->target_resolution_date,
+                'actual_resolution_date' => $issue->actual_resolution_date,
+                'notes' => $issue->notes,
+                'changes' => json_encode($changes)
+            ]);
+        }
+
+        // Broadcast updates
+        try {
+            event(new IssueUpdated($issue->load('creator', 'assignees')));
+        } catch (\Exception $e) {
+            Log::error('Failed to broadcast issue update: ' . $e->getMessage());
+        }
+
+        return redirect()
+            ->route('issues.show', $issue->id)
+            ->with('success', 'Issue updated successfully.');
+    }
+
+    public function destroy(Issue $issue)
+    {
+        $issue->delete();
+        return redirect()->route('issues.index')
+            ->with('success', 'Issue deleted successfully.');
+    }
+
+    /**
+     * Get issue details for modal display via AJAX
+     */
+    public function getIssueDetails(Issue $issue)
+    {
+        try {
+            // Mark the issue as read when viewed in the modal
+            if (!$issue->is_read) {
+                $issue->update(['is_read' => true]);
+            }
+
+            $issue->load(['comments.user', 'assignees', 'project', 'history.updatedBy']);
+            $users = User::all();
+            return view('issues.details-modal', compact('issue', 'users'));
+        } catch (\Exception $e) {
+            Log::error('Error in getIssueDetails: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+            return response()->json([
+                'error' => 'An error occurred while loading issue details: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update issue via AJAX
+     */
+    public function ajaxUpdate(Request $request, Issue $issue)
+    {
+        try {
+            // Get all input data
+            $data = $request->all();
+
+            // If status is set to resolved or closed and actual_resolution_date is not set, set it to today
+            if (in_array($data['status'] ?? '', ['resolved', 'closed']) && empty($data['actual_resolution_date'])) {
+                $data['actual_resolution_date'] = now()->toDateString();
+            }
+
+            // Prepare history data before updating the issue
+            $oldData = $issue->toArray();
+            $changedFields = [];
+
+            foreach ($data as $key => $value) {
+                if (array_key_exists($key, $oldData) && $oldData[$key] != $value) {
+                    $changedFields[$key] = [
+                        'old' => $oldData[$key],
+                        'new' => $value
+                    ];
+                }
+            }
+
+            // Save history only if there are actual changes
+            if (!empty($changedFields)) {
+                // Create issue history record
+                IssueHistory::create([
+                    'issue_id' => $issue->id,
+                    'updated_by' => Auth::id(),
+                    'title' => $oldData['title'],
+                    'description' => $oldData['description'],
+                    'priority' => $oldData['priority'],
+                    'status' => $oldData['status'],
+                    'target_resolution_date' => $oldData['target_resolution_date'],
+                    'actual_resolution_date' => $oldData['actual_resolution_date'],
+                    'notes' => $oldData['notes'],
+                    'changes' => json_encode($changedFields)
+                ]);
+            }
+
+            // Update the issue
+            $issue->update($data);
+
+            // Update assignees if provided
+            if (isset($data['assignees'])) {
+                $issue->assignees()->sync($data['assignees']);
+            }
+
+            // Load relationships
+            $issue->load(['comments.user', 'assignees', 'project', 'history.updatedBy']);
+
+            // Broadcast the update event
+            event(new IssueUpdated($issue, $changedFields));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Issue updated successfully',
+                'issue' => $issue
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error updating issue: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating issue: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Mark all unread issues as read
+     */
+    public function markAllRead()
+    {
+        Issue::where('is_read', false)->update(['is_read' => true]);
+
+        return back()->with('success', 'All notifications marked as read');
+    }
+
+    /**
+     * Get comments for an issue via AJAX
+     */
+    public function getComments(Issue $issue)
+    {
+        try {
+            $issue->load(['comments.user']);
+            return view('issues.comments-partial', compact('issue'));
+        } catch (\Exception $e) {
+            Log::error('Error in getComments: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'An error occurred while loading comments: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get history for an issue via AJAX
+     */
+    public function getHistory(Issue $issue)
+    {
+        try {
+            $issue->load(['history.updatedBy']);
+            return view('issues.history-partial', compact('issue'));
+        } catch (\Exception $e) {
+            Log::error('Error in getHistory: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'An error occurred while loading history: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+}

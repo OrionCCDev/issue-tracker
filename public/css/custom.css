@@ -1,0 +1,48 @@
+/* Notification Styles */
+.notification-icon {
+    position: relative;
+    color: #495057;
+    transition: color 0.3s ease;
+}
+
+.notification-icon:hover {
+    color: #007bff;
+}
+
+.notification-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: 0.7rem;
+    transform: translate(25%, -25%);
+}
+
+.notification-item {
+    transition: background-color 0.2s ease;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa;
+}
+
+.notifications-text {
+    font-weight: 500;
+    color: #212529;
+    margin-bottom: 3px;
+}
+
+.notifications-info {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.mark-all-read {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #007bff;
+}
+
+.mark-all-read:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}

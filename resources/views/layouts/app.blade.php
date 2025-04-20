@@ -149,12 +149,109 @@
             width: 24px;
             text-align: center;
         }
+
+        /* Modern Loader Style */
+        #modern-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #0f5874;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease-out, visibility 0.8s ease-out;
+        }
+
+        #modern-loader.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-content {
+            text-align: center;
+        }
+
+        .spinner-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 30px;
+        }
+
+        .spinner {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 6px solid transparent;
+            border-top-color: #ffffff;
+            animation: spin 1.2s linear infinite;
+        }
+
+        .spinner-inner {
+            width: 80%;
+            height: 80%;
+            top: 10%;
+            left: 10%;
+            border-top-color: #4cd2ff;
+            animation-duration: 1.6s;
+            animation-direction: reverse;
+        }
+
+        .spinner-center {
+            width: 50%;
+            height: 50%;
+            top: 25%;
+            left: 25%;
+            border-top-color: #ffffff;
+            animation-duration: 2s;
+        }
+
+        .loader-title {
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            animation: pulse 1.5s infinite;
+        }
+
+        .loader-subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
     </style>
 </head>
 
 <body>
-    <!-- Preloader -->
-    <div class="preloader-it">
+    <!-- Modern Loader -->
+    <div id="modern-loader">
+        <div class="loader-content">
+            <div class="spinner-container">
+                <div class="spinner"></div>
+                <div class="spinner spinner-inner"></div>
+                <div class="spinner spinner-center"></div>
+            </div>
+            <h2 class="loader-title">Loading...</h2>
+            <p class="loader-subtitle">Preparing your issue tracker</p>
+        </div>
+    </div>
+
+    <!-- Preloader (original - can be removed if you prefer the new one) -->
+    <div class="preloader-it" style="display: none;">
         <div class="loader-pendulums"></div>
     </div>
     <!-- /Preloader -->
@@ -391,6 +488,35 @@
     @livewireScripts()
     @yield('custom_js')
 
+    <!-- Loader Script -->
+    <script>
+        // Modern loader animation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Allow a minimum time for the loader to be visible
+            setTimeout(function() {
+                const loader = document.getElementById('modern-loader');
+                if (loader) {
+                    // Add fade-out class to initiate transition
+                    loader.classList.add('fade-out');
+                    // Remove loader from DOM after transition completes
+                    setTimeout(function() {
+                        loader.style.display = 'none';
+                    }, 800); // Match this to the CSS transition time
+                }
+            }, 1200); // Minimum loader display time (adjust as needed)
+        });
+
+        // Also hide loader when window is fully loaded
+        window.addEventListener('load', function() {
+            const loader = document.getElementById('modern-loader');
+            if (loader && !loader.classList.contains('fade-out')) {
+                loader.classList.add('fade-out');
+                setTimeout(function() {
+                    loader.style.display = 'none';
+                }, 800);
+            }
+        });
+    </script>
 
 </body>
 

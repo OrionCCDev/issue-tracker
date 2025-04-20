@@ -7,6 +7,30 @@
     <title>Projects Issue Tracker</title>
     <meta name="description" content="Projects Issue Tracker System" />
 
+    <!-- Loader fix script - ensure it runs first -->
+    <script>
+        // Fixed timeout to hide loader regardless of page load state
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                var loader = document.getElementById('modern-loader');
+                if (loader) {
+                    loader.classList.add('fade-out');
+                    setTimeout(function() {
+                        loader.style.display = 'none';
+                    }, 800);
+                }
+            }, 1000);
+        });
+
+        // Failsafe - forcibly hide loader after 5 seconds no matter what
+        setTimeout(function() {
+            var loader = document.getElementById('modern-loader');
+            if (loader) {
+                loader.style.display = 'none';
+            }
+        }, 5000);
+    </script>
+
     <!-- Favicon -->
     <link rel="shortcut icon" href="{{ asset('assets/imgs/favicon.png') }}">
     <link rel="icon" href="{{ asset('assets/imgs/favicon.png') }}" type="image/x-icon">
@@ -247,6 +271,11 @@
             </div>
             <h2 class="loader-title">Loading...</h2>
             <p class="loader-subtitle">Preparing your issue tracker</p>
+            <button onclick="document.getElementById('modern-loader').style.display='none';"
+                    style="margin-top: 20px; padding: 8px 16px; background-color: #fff; color: #0f5874; border: none;
+                           border-radius: 4px; cursor: pointer; font-weight: bold;">
+                Skip Loading
+            </button>
         </div>
     </div>
 
@@ -336,11 +365,11 @@
                                             <div class="dropdown-divider"></div>
                                         @endforeach
                                         <a href="{{ route('notifications.mark-all-as-read') }}"
-                                           onclick="event.preventDefault(); document.getElementById('mark-all-read-form').submit();"
+                                           onclick="event.preventDefault(); document.getElementById('mark-all-read-form-dynamic').submit();"
                                            class="dropdown-item text-center mark-all-read">
                                             <i class="fa fa-check-double me-2"></i>Mark all as read
                                         </a>
-                                        <form id="mark-all-read-form" action="{{ route('notifications.mark-all-as-read') }}" method="POST" style="display: none;">
+                                        <form id="mark-all-read-form-dynamic" action="{{ route('notifications.mark-all-as-read') }}" method="POST" style="display: none;">
                                             @csrf
                                         </form>
                                     @else
@@ -483,41 +512,192 @@
             }
         });
     }
+
+    // Poll for new notifications every 10 seconds
+    let lastUnreadCount = {{ auth()->user()->unreadNotifications()->count() }};
+
+    function checkForNewNotifications() {
+        try {
+            fetch('{{ route('notifications.data') }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update notification badge
+                        const notificationBadge = document.querySelector('.notification-badge');
+
+                        // If unread count changed
+                        if (data.unreadCount !== lastUnreadCount) {
+                            // Update the badge
+                            if (data.unreadCount > 0) {
+                                if (notificationBadge) {
+                                    notificationBadge.textContent = data.unreadCount;
+                                } else {
+                                    const navLink = document.querySelector('.dropdown-notifications .nav-link');
+                                    if (navLink) {
+                                        const badge = document.createElement('span');
+                                        badge.className = 'badge badge-danger notification-badge';
+                                        badge.textContent = data.unreadCount;
+                                        navLink.appendChild(badge);
+                                    }
+                                }
+
+                                // Play a notification sound if count increased
+                                if (data.unreadCount > lastUnreadCount) {
+                                    // You can add sound notification here if needed
+                                    // new Audio('/assets/notification-sound.mp3').play();
+
+                                    // Show toast notification for new notifications
+                                    showNewNotificationsToast(data.unreadCount - lastUnreadCount);
+                                }
+                            } else if (notificationBadge) {
+                                notificationBadge.remove();
+                            }
+
+                            // Update the notification dropdown content
+                            updateNotificationDropdown(data.latestNotifications);
+
+                            // Update the last count
+                            lastUnreadCount = data.unreadCount;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking for notifications:', error);
+                });
+        } catch (e) {
+            // Silently fail to prevent blocking the app
+            console.error('Error in notification check:', e);
+        }
+    }
+
+    function updateNotificationDropdown(notifications) {
+        const notificationsWrap = document.querySelector('.notifications-wrap');
+        if (!notificationsWrap) return;
+
+        let html = '';
+
+        if (notifications.length > 0) {
+            notifications.forEach(notification => {
+                const isUnread = notification.read_at === null;
+                const url = notification.data.url || '#';
+                const title = notification.data.title || notification.type.replace(/_/g, ' ');
+                const message = notification.data.message || '';
+
+                // Format time
+                const date = new Date(notification.created_at);
+                const timeAgo = timeAgoFormat(date);
+
+                html += `
+                    <a href="${url}" class="dropdown-item notification-item ${isUnread ? 'bg-light-info' : ''}"
+                       onclick="markNotificationAsRead(${notification.id})">
+                        <div class="media">
+                            <div class="media-body">
+                                <div class="notifications-text">
+                                    ${title}
+                                </div>
+                                <div class="notifications-info">
+                                    ${message}
+                                </div>
+                                <div class="notifications-time">
+                                    ${timeAgo}
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                `;
+            });
+
+            html += `
+                <a href="{{ route('notifications.mark-all-as-read') }}"
+                   onclick="event.preventDefault(); document.getElementById('mark-all-read-form-dynamic').submit();"
+                   class="dropdown-item text-center mark-all-read">
+                    <i class="fa fa-check-double me-2"></i>Mark all as read
+                </a>
+                <form id="mark-all-read-form-dynamic" action="{{ route('notifications.mark-all-as-read') }}" method="POST" style="display: none;">
+                    @csrf
+                </form>
+            `;
+        } else {
+            html = `
+                <div class="dropdown-item">
+                    <div class="media">
+                        <div class="media-body">
+                            <div class="notifications-text">No new notifications</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        notificationsWrap.innerHTML = html;
+    }
+
+    // Format time ago
+    function timeAgoFormat(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+
+        let interval = seconds / 31536000;
+
+        if (interval > 1) {
+            return Math.floor(interval) + " year" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+        }
+        interval = seconds / 2592000;
+        if (interval > 1) {
+            return Math.floor(interval) + " month" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+        }
+        interval = seconds / 86400;
+        if (interval > 1) {
+            return Math.floor(interval) + " day" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+        }
+        interval = seconds / 3600;
+        if (interval > 1) {
+            return Math.floor(interval) + " hour" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+        }
+        interval = seconds / 60;
+        if (interval > 1) {
+            return Math.floor(interval) + " minute" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+        }
+        return Math.floor(seconds) + " second" + (seconds !== 1 ? "s" : "") + " ago";
+    }
+
+    // Show toast notification for new notifications
+    function showNewNotificationsToast(count) {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+        toast.setAttribute('data-delay', '5000');
+
+        toast.innerHTML = `
+            <div class="toast-header">
+                <strong class="mr-auto">New Notifications</strong>
+                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="toast-body">
+                You have ${count} new notification${count > 1 ? 's' : ''}.
+            </div>
+        `;
+
+        document.body.appendChild(toast);
+        $(toast).toast('show');
+    }
+
+    // Check for new notifications every 10 seconds
+    setInterval(checkForNewNotifications, 10000);
+
+    // Initial check on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Delay the first check to ensure the page is fully loaded
+        setTimeout(checkForNewNotifications, 1000);
+    });
     </script>
 
     @livewireScripts()
     @yield('custom_js')
-
-    <!-- Loader Script -->
-    <script>
-        // Modern loader animation
-        document.addEventListener('DOMContentLoaded', function() {
-            // Allow a minimum time for the loader to be visible
-            setTimeout(function() {
-                const loader = document.getElementById('modern-loader');
-                if (loader) {
-                    // Add fade-out class to initiate transition
-                    loader.classList.add('fade-out');
-                    // Remove loader from DOM after transition completes
-                    setTimeout(function() {
-                        loader.style.display = 'none';
-                    }, 800); // Match this to the CSS transition time
-                }
-            }, 1200); // Minimum loader display time (adjust as needed)
-        });
-
-        // Also hide loader when window is fully loaded
-        window.addEventListener('load', function() {
-            const loader = document.getElementById('modern-loader');
-            if (loader && !loader.classList.contains('fade-out')) {
-                loader.classList.add('fade-out');
-                setTimeout(function() {
-                    loader.style.display = 'none';
-                }, 800);
-            }
-        });
-    </script>
-
 </body>
 
 </html>

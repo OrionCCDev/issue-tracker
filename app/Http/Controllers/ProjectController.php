@@ -251,6 +251,38 @@ class ProjectController extends Controller
         // Update the project
         $project->update($validated);
 
+        // Get all users to notify
+        $usersToNotify = collect();
+
+        // Get all admin users
+        $usersToNotify = $usersToNotify->merge(User::where('role', 'o-admin')->get());
+
+        // Get all GM users
+        $usersToNotify = $usersToNotify->merge(User::where('role', 'gm')->get());
+
+        // Get all CM users
+        $usersToNotify = $usersToNotify->merge(User::where('role', 'cm')->get());
+
+        // Get project manager if updated by someone else
+        if ($project->manager_id != Auth::id()) {
+            $usersToNotify->push($project->manager);
+        }
+
+        // Remove duplicates and the user who made the update
+        $usersToNotify = $usersToNotify->unique('id')->where('id', '!=', Auth::id());
+
+        // Send notifications
+        NotificationService::notifyMany(
+            $usersToNotify,
+            'project_updated',
+            $project,
+            [
+                'title' => 'Project Updated',
+                'message' => Auth::user()->name . ' updated project "' . $project->name . '"',
+                'url' => route('projects.show', $project->id)
+            ]
+        );
+
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,

@@ -162,6 +162,9 @@ class IssueController extends Controller
         // Get all users to notify
         $usersToNotify = collect();
 
+        // Get all admin users
+        $usersToNotify = $usersToNotify->merge(User::where('role', 'o-admin')->get());
+
         // Get all GM users
         $usersToNotify = $usersToNotify->merge(User::where('role', 'gm')->get());
 
@@ -309,6 +312,9 @@ class IssueController extends Controller
 
         // Get all users to notify
         $usersToNotify = collect();
+
+        // Get all admin users
+        $usersToNotify = $usersToNotify->merge(User::where('role', 'o-admin')->get());
 
         // Get all GM users
         $usersToNotify = $usersToNotify->merge(User::where('role', 'gm')->get());
@@ -503,6 +509,43 @@ class IssueController extends Controller
 
             // Load relationships
             $issue->load(['comments.user', 'assignees', 'project', 'history.updatedBy']);
+
+            // Get all users to notify
+            $usersToNotify = collect();
+
+            // Get all admin users
+            $usersToNotify = $usersToNotify->merge(User::where('role', 'o-admin')->get());
+
+            // Get all GM users
+            $usersToNotify = $usersToNotify->merge(User::where('role', 'gm')->get());
+
+            // Get all CM users
+            $usersToNotify = $usersToNotify->merge(User::where('role', 'cm')->get());
+
+            // Get project manager
+            if ($issue->project && $issue->project->manager_id != Auth::id()) {
+                $usersToNotify->push($issue->project->manager);
+            }
+
+            // Get all assignees
+            $usersToNotify = $usersToNotify->merge($issue->assignees);
+
+            // Remove duplicates and the issue updater
+            $usersToNotify = $usersToNotify->unique('id')->where('id', '!=', Auth::id());
+
+            // Send notifications only if there are changes
+            if (!empty($changedFields)) {
+                NotificationService::notifyMany(
+                    $usersToNotify,
+                    'issue_updated',
+                    $issue,
+                    [
+                        'title' => 'Issue Updated',
+                        'message' => Auth::user()->name . ' updated issue "' . $issue->title . '"',
+                        'url' => route('projects.issues.show', [$issue->project_id, $issue->id])
+                    ]
+                );
+            }
 
             // Broadcast the update event
             event(new IssueUpdated($issue, $changedFields));

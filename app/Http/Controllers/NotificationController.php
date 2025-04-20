@@ -127,4 +127,22 @@ class NotificationController extends Controller
         return redirect()->route('notifications.index')
             ->with('success', 'Sample notifications created successfully.');
     }
+
+    /**
+     * Get unread notifications count and latest notifications
+     * Endpoint for AJAX polling
+     */
+    public function getNotificationsData()
+    {
+        $user = Auth::user();
+        $unreadCount = $user->unreadNotifications()->count();
+        $latestNotifications = $user->notifications()->latest()->take(5)->get();
+
+        return response()->json([
+            'success' => true,
+            'unreadCount' => $unreadCount,
+            'latestNotifications' => $latestNotifications,
+            'hasUnread' => $unreadCount > 0
+        ]);
+    }
 }

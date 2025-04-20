@@ -47,6 +47,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/notifications/{id}/mark-as-unread', [NotificationController::class, 'markAsUnread'])->name('notifications.mark-as-unread');
     Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
     Route::get('/notifications/create-samples', [NotificationController::class, 'createSampleNotifications'])->name('notifications.create-samples');
+    Route::get('/notifications/data', [NotificationController::class, 'getNotificationsData'])->name('notifications.data');
 
     // Users Management (Admin and CM only)
     Route::middleware('role:o-admin|cm')->group(function () {

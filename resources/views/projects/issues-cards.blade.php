@@ -8,7 +8,7 @@
             <h2 class="hk-pg-title font-weight-600 mb-10">{{ $project->name }} - Issues</h2>
             <p class="text-muted">
                 <a href="{{ route('projects.show', $project->id) }}">Project Details</a> |
-                <a href="{{ route('issues.create', ['project_id' => $project->id]) }}">Create New Issue</a>
+                <a href="{{ route('projects.issues.create', $project) }}">Create New Issue</a>
             </p>
         </div>
     </div>

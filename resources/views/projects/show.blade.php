@@ -8,7 +8,7 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span>{{ $project->name }} ({{ $project->code }})</span>
                     <div>
-                        <a href="{{ route('projects.edit', $project) }}" class="btn btn-primary btn-sm">Edit Project</a>
+                        {{--  <a href="{{ route('projects.edit', $project) }}" class="btn btn-primary btn-sm">Edit Project</a>  --}}
                         <a href="{{ route('projects.index') }}" class="btn btn-secondary btn-sm">Back to List</a>
                     </div>
                 </div>
@@ -97,19 +97,21 @@
                         @include('projects.edit')
                     </div>
 
-                    <!-- Issues Cards Section -->
+                    <!-- Issues Section -->
                     <div>
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h4>Issues</h4>
                         </div>
 
                         <!-- Fixed Add New Issue Button -->
+                        @if(Auth::user()->role === 'o-admin' || Auth::user()->role === 'cm' || Auth::user()->role === 'pm' || $project->members->contains(Auth::user()))
                         <div class="add-issue-fab">
-                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addIssueModal">
+                            <button type="button" class="btn btn-primary" id="addNewIssueRow">
                                 <i class="fa fa-plus"></i>
                                 Add New Issue
                             </button>
                         </div>
+                        @endif
 
                         <!-- Add Issue Modal -->
                         <div class="modal fade" id="addIssueModal" tabindex="-1" role="dialog" aria-labelledby="addIssueModalLabel" aria-hidden="true">
@@ -242,216 +244,267 @@
                             </div>
                         </div>
 
-                        <!-- Issues Cards -->
-                        <div class="row">
-                            @forelse($issues as $issue)
-                                <div class="col-12 mb-3">
-                                    <div class="issue-card" data-issue-id="{{ $issue->id }}">
-                                        <div class="card minicard h-100 shadow-sm">
-                                            <div class="card-body p-3">
-                                                <style>
-                                                    .issue-card {
-                                                        transition: all 0.3s ease;
-                                                    }
-                                                    .issue-card:hover {
-                                                        transform: translateY(-2px);
-                                                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-                                                    }
-                                                    .issue-card .form-control {
-                                                        border: 1px solid #e9ecef;
-                                                        transition: border-color 0.2s ease;
-                                                    }
-                                                    .issue-card .form-control:focus {
-                                                        border-color: #80bdff;
-                                                        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-                                                    }
-                                                    .issue-card .Priority-pdg {
-                                                        top: 0;
-                                                        right: 0;
-                                                    }
-                                                    .issue-card .Status-pdg {
-                                                        top: 0;
-                                                        left: 0;
-                                                    }
-                                                    .avatar-xxs {
-                                                        width: 20px !important;
-                                                        height: 20px !important;
-                                                        font-size: 10px;
-                                                        display: inline-flex;
-                                                        align-items: center;
-                                                        justify-content: center;
-                                                    }
-                                                    .comments-preview .avatar-group {
-                                                        display: flex;
-                                                        flex-wrap: wrap;
-                                                    }
-                                                    .comments-preview .avatar-group .avatar {
-                                                        margin-right: -6px;
-                                                        border: 1px solid #fff;
-                                                    }
-                                                    .card-actions {
-                                                        display: inline-block;
-                                                    }
-                                                    .save-button {
-                                                        position: absolute;
-                                                        bottom: 10px;
-                                                        right: 10px;
-                                                        opacity: 0;
-                                                        transition: opacity 0.3s ease;
-                                                    }
-                                                    .card.changed .save-button {
-                                                        opacity: 1;
-                                                    }
-                                                    /* Add New Issue Button Styles */
-                                                    .add-issue-fab {
-                                                        position: fixed;
-                                                        right: 30px;
-                                                        bottom: 30px;
-                                                        z-index: 1000;
-                                                        transition: all 0.3s ease;
-                                                    }
-                                                    .add-issue-fab:hover {
-                                                        transform: scale(1.1);
-                                                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                                                    }
-                                                    .add-issue-fab .btn {
-                                                        border-radius: 50px;
-                                                        padding: 12px 25px;
-                                                        font-weight: 600;
-                                                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                                                        display: flex;
-                                                        align-items: center;
-                                                        gap: 8px;
-                                                    }
-                                                    .add-issue-fab .btn i {
-                                                        font-size: 16px;
-                                                    }
-                                                </style>
+                        <!-- Table Styles -->
+                        <style>
+                          .table-responsive {
+                            overflow-x: auto;
+                          }
 
-                                                <!-- Card Actions -->
+                          .issues-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            background-color: #fff;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                            border-radius: 8px;
+                          }
 
+                          .issues-table th {
+                            background-color: #f8f9fa;
+                            padding: 12px;
+                            text-align: left;
+                            font-weight: 600;
+                            border-bottom: 2px solid #dee2e6;
+                          }
 
-                                                <div class="row">
-                                                    <!-- Left Column - Main Content -->
-                                                    <div class="col-md-8">
-                                                        <!-- Tags/Categories -->
-                                                        <div class="mb-2 d-inline-block">
-                                                            <span class="badge badge-light mr-2">#{{ $issue->id }}</span>
-                                                            @if($issue->labels)
-                                                                @foreach($issue->labels as $label)
-                                                                    <span class="badge badge-info mr-2">{{ $label }}</span>
-                                                                @endforeach
-                                                            @endif
-                                                        </div>
-                                                        <div class="card-actions">
-                                                            <button type="button" class="btn btn-sm btn-outline-primary mr-1" onclick="showComments({{ $issue->id }})">
-                                                                <i class="fa fa-comments"></i>
-                                                            </button>
-                                                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="showHistory({{ $issue->id }})">
-                                                                <i class="fa fa-history"></i>
-                                                            </button>
-                                                        </div>
-                                                        <!-- Title -->
-                                                        <div class="form-group mb-2">
-                                                            <input type="text"
-                                                                   class="form-control form-control-sm"
-                                                                   value="{{ $issue->title }}"
-                                                                   data-field="title"
-                                                                   data-issue-id="{{ $issue->id }}"
-                                                                   placeholder="Issue Title">
-                                                        </div>
+                          .issues-table td {
+                            padding: 12px;
+                            border-bottom: 1px solid #dee2e6;
+                            vertical-align: middle;
+                          }
 
-                                                        <!-- Description -->
-                                                        <div class="form-group mb-2">
-                                                            <textarea class="form-control"
-                                                                      rows="2"
-                                                                      data-field="description"
-                                                                      data-issue-id="{{ $issue->id }}"
-                                                                      placeholder="Issue Description">{{ $issue->description }}</textarea>
-                                                        </div>
-                                                        <!-- Resolution Dates -->
-                                                        <div class="row">
-                                                            <div class="col-6">
-                                                                <div class="form-group mb-0">
-                                                                    <label class="small text-muted mb-0">Target</label>
-                                                                    <input type="date"
-                                                                           class="form-control form-control-sm"
-                                                                           value="{{ $issue->target_resolution_date ? $issue->target_resolution_date->format('Y-m-d') : '' }}"
-                                                                           data-field="target_resolution_date"
-                                                                           data-issue-id="{{ $issue->id }}">
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-6">
-                                                                <div class="form-group mb-0">
-                                                                    <label class="small text-muted mb-0">Actual</label>
-                                                                    <input type="date"
-                                                                           class="form-control form-control-sm"
-                                                                           value="{{ $issue->actual_resolution_date ? $issue->actual_resolution_date->format('Y-m-d') : '' }}"
-                                                                           data-field="actual_resolution_date"
-                                                                           data-issue-id="{{ $issue->id }}">
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                          .issues-table tr:hover {
+                            background-color: #f8f9fa;
+                          }
 
-                                                    </div>
+                          .issues-table .form-control {
+                            border: 1px solid #e9ecef;
+                            transition: border-color 0.2s ease;
+                          }
 
-                                                    <!-- Right Column - Metadata -->
-                                                    <div class="col-md-4">
-                                                        <div class="d-flex flex-column h-100">
-                                                            <!-- Priority and Status -->
-                                                            <div class="row mb-2">
-                                                                <div class="Priority-pdg col-6">
-                                                                    <select class="form-control form-control-sm" data-field="priority" data-issue-id="{{ $issue->id }}">
-                                                                        <option value="low" {{ $issue->priority == 'low' ? 'selected' : '' }}>Low</option>
-                                                                        <option value="medium" {{ $issue->priority == 'medium' ? 'selected' : '' }}>Medium</option>
-                                                                        <option value="high" {{ $issue->priority == 'high' ? 'selected' : '' }}>High</option>
-                                                                        <option value="critical" {{ $issue->priority == 'critical' ? 'selected' : '' }}>Critical</option>
-                                                                    </select>
-                                                                </div>
-                                                                <div class="Status-pdg col-6">
-                                                                    <select class="form-control form-control-sm" data-field="status" data-issue-id="{{ $issue->id }}">
-                                                                        <option value="open" {{ $issue->status == 'open' ? 'selected' : '' }}>Open</option>
-                                                                        <option value="in_progress" {{ $issue->status == 'in_progress' ? 'selected' : '' }}>In Progress</option>
-                                                                        <option value="resolved" {{ $issue->status == 'resolved' ? 'selected' : '' }}>Resolved</option>
-                                                                    </select>
-                                                                </div>
-                                                            </div>
+                          .issues-table .form-control:focus {
+                            border-color: #80bdff;
+                            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+                          }
 
-                                                            <!-- Assignees -->
-                                                            <div class="mb-2">
-                                                                <small class="text-muted d-block mb-1">Assigned to:</small>
-                                                                <select class="form-control form-control-sm" data-field="assignees" data-issue-id="{{ $issue->id }}" multiple>
-                                                                    @foreach($users as $user)
-                                                                        <option value="{{ $user->id }}" {{ $issue->assignees->contains($user->id) ? 'selected' : '' }}>
-                                                                            {{ $user->name }}
-                                                                        </option>
-                                                                    @endforeach
-                                                                </select>
-                                                            </div>
+                          .status-open {
+                            background-color: #ffeeba;
+                            color: #856404;
+                            padding: 4px 8px;
+                            border-radius: 4px;
+                            font-size: 12px;
+                          }
 
+                          .status-in_progress {
+                            background-color: #b8daff;
+                            color: #004085;
+                            padding: 4px 8px;
+                            border-radius: 4px;
+                            font-size: 12px;
+                          }
 
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <!-- Save Button -->
-                                                <button type="button"
-                                                        class="btn btn-sm btn-primary save-button"
-                                                        data-issue-id="{{ $issue->id }}"
-                                                        disabled>
-                                                    Save Changes
-                                                </button>
+                          .status-resolved {
+                            background-color: #c3e6cb;
+                            color: #155724;
+                            padding: 4px 8px;
+                            border-radius: 4px;
+                            font-size: 12px;
+                          }
 
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @empty
-                                <div class="col-12">
-                                    <div class="alert alert-light text-center">
-                                        No issues found for this project.
-                                    </div>
-                                </div>
-                            @endforelse
+                          .priority-low {
+                            background-color: #d4edda;
+                            color: #155724;
+                            padding: 4px 8px;
+                            border-radius: 4px;
+                            font-size: 12px;
+                          }
+
+                          .priority-medium {
+                            background-color: #fff3cd;
+                            color: #856404;
+                            padding: 4px 8px;
+                            border-radius: 4px;
+                            font-size: 12px;
+                          }
+
+                          .priority-high {
+                            background-color: #f8d7da;
+                            color: #721c24;
+                            padding: 4px 8px;
+                            border-radius: 4px;
+                            font-size: 12px;
+                          }
+
+                          .priority-critical {
+                            background-color: #dc3545;
+                            color: #fff;
+                            padding: 4px 8px;
+                            border-radius: 4px;
+                            font-size: 12px;
+                          }
+
+                          .save-row-button {
+                            opacity: 0;
+                            transition: opacity 0.3s ease;
+                          }
+
+                          .row-changed .save-row-button {
+                            opacity: 1;
+                          }
+
+                          .badge-issue-id {
+                            background-color: #6c757d;
+                            color: white;
+                            font-size: 12px;
+                            border-radius: 4px;
+                            padding: 3px 6px;
+                          }
+
+                          .description-cell {
+                            max-width: 250px;
+                          }
+
+                          .description-cell textarea {
+                            min-height: 60px;
+                          }
+
+                          .action-buttons {
+                            display: flex;
+                            gap: 5px;
+                          }
+
+                          /* Add New Issue Button Styles */
+                          .add-issue-fab {
+                              position: fixed;
+                              right: 30px;
+                              bottom: 30px;
+                              z-index: 1000;
+                              transition: all 0.3s ease;
+                          }
+                          .add-issue-fab:hover {
+                              transform: scale(1.1);
+                              box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                              border-radius: 50px;
+                          }
+                          .add-issue-fab .btn {
+                              border-radius: 50px;
+                              padding: 12px 25px;
+                              font-weight: 600;
+                              box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                              display: flex;
+                              align-items: center;
+                              gap: 8px;
+                          }
+                          .add-issue-fab .btn i {
+                              font-size: 16px;
+                          }
+                        </style>
+
+                        <!-- Issues Table -->
+                        <div class="table-responsive">
+                          <table class="issues-table">
+                            <thead>
+                              <tr>
+                                <th width="5%">ID</th>
+                                <th width="15%">Title</th>
+                                <th width="20%">Description</th>
+                                <th width="10%">Status</th>
+                                <th width="10%">Priority</th>
+                                <th width="15%">Assignees</th>
+                                <th width="10%">Target Date</th>
+                                <th width="10%">Actual Date</th>
+                                <th width="5%">Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              @forelse($issues as $issue)
+                              <tr class="issue-row" data-issue-id="{{ $issue->id }}">
+                                <td>
+                                  <span class="badge-issue-id">#{{ $issue->id }}</span>
+                                  @if($issue->labels)
+                                    @foreach($issue->labels as $label)
+                                      <span class="badge badge-info">{{ $label }}</span>
+                                    @endforeach
+                                  @endif
+                                </td>
+                                <td>
+                                  <input type="text"
+                                         class="form-control form-control-sm"
+                                         value="{{ $issue->title }}"
+                                         data-field="title"
+                                         data-issue-id="{{ $issue->id }}"
+                                         placeholder="Issue Title">
+                                </td>
+                                <td class="description-cell">
+                                  <textarea class="form-control form-control-sm"
+                                            rows="2"
+                                            data-field="description"
+                                            data-issue-id="{{ $issue->id }}"
+                                            placeholder="Issue Description">{{ $issue->description }}</textarea>
+                                </td>
+                                <td>
+                                  <select class="form-control form-control-sm" data-field="status" data-issue-id="{{ $issue->id }}">
+                                    <option value="open" {{ $issue->status == 'open' ? 'selected' : '' }}>Open</option>
+                                    <option value="in_progress" {{ $issue->status == 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                                    <option value="resolved" {{ $issue->status == 'resolved' ? 'selected' : '' }}>Resolved</option>
+                                  </select>
+                                </td>
+                                <td>
+                                  <select class="form-control form-control-sm" data-field="priority" data-issue-id="{{ $issue->id }}">
+                                    <option value="low" {{ $issue->priority == 'low' ? 'selected' : '' }}>Low</option>
+                                    <option value="medium" {{ $issue->priority == 'medium' ? 'selected' : '' }}>Medium</option>
+                                    <option value="high" {{ $issue->priority == 'high' ? 'selected' : '' }}>High</option>
+                                    <option value="critical" {{ $issue->priority == 'critical' ? 'selected' : '' }}>Critical</option>
+                                  </select>
+                                </td>
+                                <td>
+                                  <select class="form-control form-control-sm" data-field="assignees" data-issue-id="{{ $issue->id }}" multiple>
+                                    @foreach($users as $user)
+                                      <option value="{{ $user->id }}" {{ $issue->assignees->contains($user->id) ? 'selected' : '' }}>
+                                        {{ $user->name }}
+                                      </option>
+                                    @endforeach
+                                  </select>
+                                </td>
+                                <td>
+                                  <input type="date"
+                                         class="form-control form-control-sm"
+                                         value="{{ $issue->target_resolution_date ? $issue->target_resolution_date->format('Y-m-d') : '' }}"
+                                         data-field="target_resolution_date"
+                                         data-issue-id="{{ $issue->id }}">
+                                </td>
+                                <td>
+                                  <input type="date"
+                                         class="form-control form-control-sm"
+                                         value="{{ $issue->actual_resolution_date ? $issue->actual_resolution_date->format('Y-m-d') : '' }}"
+                                         data-field="actual_resolution_date"
+                                         data-issue-id="{{ $issue->id }}">
+                                </td>
+                                <td>
+                                  <div class="action-buttons">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="showComments({{ $issue->id }})">
+                                      <i class="fa fa-comments"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="showHistory({{ $issue->id }})">
+                                      <i class="fa fa-history"></i>
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-sm btn-primary save-row-button"
+                                            data-issue-id="{{ $issue->id }}"
+                                            disabled>
+                                      <i class="fa fa-save"></i>
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                              @empty
+                              <tr>
+                                <td colspan="9" class="text-center">
+                                  <div class="alert alert-light">No issues found for this project.</div>
+                                </td>
+                              </tr>
+                              @endforelse
+                            </tbody>
+                          </table>
                         </div>
 
                         <!-- Comments Modal -->
@@ -526,169 +579,121 @@
             }
         });
 
-        // Add event listeners for input changes
-        $('.issue-card').each(function() {
-            const issueCard = $(this);
-            const saveButton = issueCard.find('.save-button');
-            const originalValues = {};
+        // Initialize issue row event handlers
+        initIssueRowEventHandlers();
 
-            // Store original values
-            issueCard.find('input, select, textarea').each(function() {
-                const field = $(this);
-                originalValues[field.attr('name') || field.attr('data-field')] = field.val();
-            });
+        // Handle Add New Issue button click
+        $('#addNewIssueRow').on('click', function() {
+            // Generate a temporary ID for the new row (negative to avoid conflicts with real IDs)
+            const tempId = -Math.floor(Math.random() * 1000);
 
-            // Add change event listener to all inputs
-            issueCard.find('input, select, textarea').on('change', function() {
-                const currentValues = {};
-                issueCard.find('input, select, textarea').each(function() {
-                    const field = $(this);
-                    currentValues[field.attr('name') || field.attr('data-field')] = field.val();
-                });
+            // Create the new row HTML
+            const newRowHtml = `
+              <tr class="issue-row new-issue-row" data-issue-id="${tempId}">
+                <td>
+                  <span class="badge-issue-id">NEW</span>
+                </td>
+                <td>
+                  <input type="text"
+                         class="form-control form-control-sm"
+                         value=""
+                         data-field="title"
+                         data-issue-id="${tempId}"
+                         placeholder="Issue Title">
+                </td>
+                <td class="description-cell">
+                  <textarea class="form-control form-control-sm"
+                            rows="2"
+                            data-field="description"
+                            data-issue-id="${tempId}"
+                            placeholder="Issue Description"></textarea>
+                </td>
+                <td>
+                  <select class="form-control form-control-sm" data-field="status" data-issue-id="${tempId}">
+                    <option value="open" selected>Open</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="resolved">Resolved</option>
+                  </select>
+                </td>
+                <td>
+                  <select class="form-control form-control-sm" data-field="priority" data-issue-id="${tempId}">
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
+                  </select>
+                </td>
+                <td>
+                  <select class="form-control form-control-sm" data-field="assignees" data-issue-id="${tempId}" multiple>
+                    @foreach($users as $user)
+                      <option value="{{ $user->id }}">
+                        {{ $user->name }}
+                      </option>
+                    @endforeach
+                  </select>
+                </td>
+                <td>
+                  <input type="date"
+                         class="form-control form-control-sm"
+                         value=""
+                         data-field="target_resolution_date"
+                         data-issue-id="${tempId}">
+                </td>
+                <td>
+                  <input type="date"
+                         class="form-control form-control-sm"
+                         value=""
+                         data-field="actual_resolution_date"
+                         data-issue-id="${tempId}">
+                </td>
+                <td>
+                  <div class="action-buttons">
+                    <button type="button" class="btn btn-sm btn-primary save-new-issue-button" data-issue-id="${tempId}">
+                      <i class="fa fa-save"></i> Save
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger cancel-new-issue-button" data-issue-id="${tempId}">
+                      <i class="fa fa-times"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `;
 
-                // Check if any value has changed
-                const hasChanges = Object.keys(originalValues).some(key =>
-                    originalValues[key] !== currentValues[key]
-                );
+            // Add the new row at the top of the table
+            $('.issues-table tbody').prepend(newRowHtml);
 
-                // Enable/disable save button based on changes
-                saveButton.prop('disabled', !hasChanges);
+            // Initialize the new row's event handlers
+            initNewIssueRowEventHandlers(tempId);
 
-                // Add/remove changed class to card
-                if (hasChanges) {
-                    issueCard.find('.card').addClass('changed');
-                } else {
-                    issueCard.find('.card').removeClass('changed');
-                }
-            });
-
-            // Add save button click handler
-            saveButton.on('click', function() {
-                const issueId = issueCard.data('issue-id');
-                const formData = new FormData();
-
-                // Collect all values, not just changed ones
-                issueCard.find('input, select, textarea').each(function() {
-                    const field = $(this);
-                    const fieldName = field.attr('name') || field.attr('data-field');
-                    const value = field.is('select') ? field.val() : field.val();
-                    formData.append(fieldName, value);
-                });
-
-                // Add CSRF token
-                formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
-
-                // Send AJAX request to update the issue
-                $.ajax({
-                    url: `/issues/${issueId}/ajax-update`,
-                    method: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function(response) {
-                        if (response.success) {
-                            // Update original values to match new values
-                            issueCard.find('input, select, textarea').each(function() {
-                                const field = $(this);
-                                const fieldName = field.attr('name') || field.attr('data-field');
-                                originalValues[fieldName] = field.val();
-                            });
-
-                            // Disable save button and remove changed class
-                            saveButton.prop('disabled', true);
-                            issueCard.find('.card').removeClass('changed');
-
-                            // Show success message
-                            if (typeof toastr !== 'undefined') {
-                                toastr.success('Changes saved successfully!');
-                            } else {
-                                alert('Changes saved successfully!');
-                            }
-                        } else {
-                            throw new Error(response.message || 'Failed to save changes');
-                        }
-                    },
-                    error: function(xhr) {
-                        let errorMessage = 'Error saving changes';
-                        if (xhr.responseJSON && xhr.responseJSON.message) {
-                            errorMessage = xhr.responseJSON.message;
-                        }
-                        if (typeof toastr !== 'undefined') {
-                            toastr.error(errorMessage);
-                        } else {
-                            alert(errorMessage);
-                        }
-                    }
-                });
-            });
+            // Focus on title input
+            $('.issues-table tbody tr:first-child input[data-field="title"]').focus();
         });
 
         console.log('jQuery ready event fired');
 
-        // Get all unique dates from issues and group them by week
-        const allDates = @json($issues->pluck('created_at')->map(function($date) {
-            return \Carbon\Carbon::parse($date)->startOfWeek()->format('Y-m-d');
-        })->unique()->sort()->values());
-
-        // Prepare data for each status over time, grouped by week
-        const statusData = {
-            open: @json($issues->where('status', 'open')->pluck('created_at')->map(function($date) {
-                return \Carbon\Carbon::parse($date)->startOfWeek()->format('Y-m-d');
-            })->countBy()->toArray()),
-            inProgress: @json($issues->where('status', 'in_progress')->pluck('created_at')->map(function($date) {
-                return \Carbon\Carbon::parse($date)->startOfWeek()->format('Y-m-d');
-            })->countBy()->toArray()),
-            resolved: @json($issues->where('status', 'resolved')->pluck('created_at')->map(function($date) {
-                return \Carbon\Carbon::parse($date)->startOfWeek()->format('Y-m-d');
-            })->countBy()->toArray()),
-            closed: @json($issues->where('status', 'closed')->pluck('created_at')->map(function($date) {
-                return \Carbon\Carbon::parse($date)->startOfWeek()->format('Y-m-d');
-            })->countBy()->toArray())
-        };
-
-        // Prepare the data arrays for the chart
-        const prepareData = (data, dates) => {
-            return dates.map(date => data[date] || 0);
-        };
-
-        // Status Chart (Stacked Bar Chart)
+        // Create a simple status distribution chart (doughnut chart)
         const statusChart = new Chart(
             document.getElementById('statusChart'),
             {
-                type: 'bar',
+                type: 'doughnut',
                 data: {
-                    labels: allDates.map(date => {
-                        const weekStart = new Date(date);
-                        const weekEnd = new Date(date);
-                        weekEnd.setDate(weekEnd.getDate() + 6);
-                        return `${weekStart.toLocaleDateString()} - ${weekEnd.toLocaleDateString()}`;
-                    }),
-                    datasets: [
-                        {
-                            label: 'Open',
-                            data: prepareData(statusData.open, allDates),
-                            backgroundColor: '#FF6384',
-                            stack: 'Stack 0'
-                        },
-                        {
-                            label: 'In Progress',
-                            data: prepareData(statusData.inProgress, allDates),
-                            backgroundColor: '#36A2EB',
-                            stack: 'Stack 0'
-                        },
-                        {
-                            label: 'Resolved',
-                            data: prepareData(statusData.resolved, allDates),
-                            backgroundColor: '#FFCE56',
-                            stack: 'Stack 0'
-                        },
-                        {
-                            label: 'Closed',
-                            data: prepareData(statusData.closed, allDates),
-                            backgroundColor: '#4BC0C0',
-                            stack: 'Stack 0'
-                        }
-                    ]
+                    labels: ['Open', 'In Progress', 'Resolved', 'Closed'],
+                    datasets: [{
+                        label: 'Number of Issues',
+                        data: [
+                            {{ $issues->where('status', 'open')->count() }},
+                            {{ $issues->where('status', 'in_progress')->count() }},
+                            {{ $issues->where('status', 'resolved')->count() }},
+                            {{ $issues->where('status', 'closed')->count() }}
+                        ],
+                        backgroundColor: [
+                            '#FF6384', // Open - Red
+                            '#36A2EB', // In Progress - Blue
+                            '#FFCE56', // Resolved - Yellow
+                            '#4BC0C0'  // Closed - Green
+                        ],
+                        hoverOffset: 4
+                    }]
                 },
                 options: {
                     responsive: true,
@@ -696,30 +701,10 @@
                     plugins: {
                         title: {
                             display: true,
-                            text: 'Issue Status Over Time (Weekly)'
+                            text: 'Current Status Distribution'
                         },
                         legend: {
-                            position: 'top'
-                        }
-                    },
-                    scales: {
-                        x: {
-                            stacked: true,
-                            title: {
-                                display: true,
-                                text: 'Week'
-                            }
-                        },
-                        y: {
-                            stacked: true,
-                            title: {
-                                display: true,
-                                text: 'Number of Issues'
-                            },
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
+                            position: 'right'
                         }
                     }
                 }
@@ -768,6 +753,257 @@
         console.log('Priority Chart element exists:', !!document.getElementById('priorityChart'));
     });
 
+    function initIssueRowEventHandlers() {
+        $('.issue-row').each(function() {
+            const issueRow = $(this);
+            const saveButton = issueRow.find('.save-row-button');
+            const originalValues = {};
+
+            // Store original values
+            issueRow.find('input, select, textarea').each(function() {
+                const field = $(this);
+                originalValues[field.attr('name') || field.attr('data-field')] = field.val();
+            });
+
+            // Add change event listener to all inputs
+            issueRow.find('input, select, textarea').on('change', function() {
+                const currentValues = {};
+                issueRow.find('input, select, textarea').each(function() {
+                    const field = $(this);
+                    currentValues[field.attr('name') || field.attr('data-field')] = field.val();
+                });
+
+                // Check if any value has changed
+                const hasChanges = Object.keys(originalValues).some(key =>
+                    originalValues[key] !== currentValues[key]
+                );
+
+                // Enable/disable save button based on changes
+                saveButton.prop('disabled', !hasChanges);
+
+                // Add/remove changed class to row
+                if (hasChanges) {
+                    issueRow.addClass('row-changed');
+                } else {
+                    issueRow.removeClass('row-changed');
+                }
+            });
+
+            // Add save button click handler
+            saveButton.on('click', function() {
+                const issueId = issueRow.data('issue-id');
+                const formData = new FormData();
+
+                // Collect all values
+                issueRow.find('input, select, textarea').each(function() {
+                    const field = $(this);
+                    const fieldName = field.attr('name') || field.attr('data-field');
+
+                    // Handle multiple select field differently
+                    if (field.is('select[multiple]')) {
+                        // Get selected values as array
+                        const values = field.val() || [];
+
+                        // Append each value separately with the same name (creates array on server side)
+                        if (values.length > 0) {
+                            values.forEach(value => {
+                                formData.append(`${fieldName}[]`, value);
+                            });
+                        } else {
+                            // If nothing selected, don't send empty value
+                            // This will clear all assignees in the controller using sync([])
+                            formData.append(`${fieldName}`, '');
+                        }
+                    } else {
+                        // Handle regular fields
+                        formData.append(fieldName, field.val());
+                    }
+                });
+
+                // Add CSRF token
+                formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+                // Send AJAX request to update the issue
+                $.ajax({
+                    url: `/issues/${issueId}/ajax-update`,
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            // Update original values to match new values
+                            issueRow.find('input, select, textarea').each(function() {
+                                const field = $(this);
+                                const fieldName = field.attr('name') || field.attr('data-field');
+                                originalValues[fieldName] = field.val();
+                            });
+
+                            // Disable save button and remove changed class
+                            saveButton.prop('disabled', true);
+                            issueRow.removeClass('row-changed');
+
+                            // Show success message
+                            if (typeof toastr !== 'undefined') {
+                                toastr.success('Changes saved successfully!');
+                            } else {
+                                alert('Changes saved successfully!');
+                            }
+                        } else {
+                            throw new Error(response.message || 'Failed to save changes');
+                        }
+                    },
+                    error: function(xhr) {
+                        let errorMessage = 'Error saving changes';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error(errorMessage);
+                        } else {
+                            alert(errorMessage);
+                        }
+                    }
+                });
+            });
+        });
+    }
+
+    function initNewIssueRowEventHandlers(tempId) {
+        const issueRow = $(`tr[data-issue-id="${tempId}"]`);
+
+        // Handle Cancel button click
+        issueRow.find('.cancel-new-issue-button').on('click', function() {
+            issueRow.remove();
+        });
+
+        // Handle Save button click
+        issueRow.find('.save-new-issue-button').on('click', function() {
+            const formData = new FormData();
+
+            // Add project_id to the form data
+            formData.append('project_id', '{{ $project->id }}');
+
+            // Collect all field values
+            issueRow.find('input, select, textarea').each(function() {
+                const field = $(this);
+                const fieldName = field.attr('name') || field.attr('data-field');
+
+                // Handle multiple select fields
+                if (field.is('select[multiple]')) {
+                    const values = field.val() || [];
+                    if (values.length > 0) {
+                        values.forEach(value => {
+                            formData.append(`${fieldName}[]`, value);
+                        });
+                    } else {
+                        formData.append(`${fieldName}`, '');
+                    }
+                } else {
+                    // Regular fields
+                    formData.append(fieldName, field.val());
+                }
+            });
+
+            // Add CSRF token
+            formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+            // Show loading state
+            const saveBtn = $(this);
+            saveBtn.prop('disabled', true);
+            saveBtn.html('<i class="fa fa-spinner fa-spin"></i>');
+
+            // Send AJAX request to create the issue
+            $.ajax({
+                url: '{{ route("issues.store") }}',
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    // Consider any successful HTTP response as success
+                    // Show success message
+                    if (typeof toastr !== 'undefined') {
+                        toastr.success('Issue created successfully!');
+                    } else {
+                        alert('Issue created successfully!');
+                    }
+
+                    // Remove the temporary row
+                    issueRow.remove();
+
+                    // Refresh the issues list
+                    $.ajax({
+                        url: '{{ route("projects.show", $project->id) }}',
+                        method: 'GET',
+                        success: function(response) {
+                            // Create a temporary div to parse the response
+                            const $temp = $('<div>').html(response);
+
+                            // Find the issues table in the response
+                            const $newContent = $temp.find('.issues-table tbody');
+
+                            // Get the original container
+                            const $originalContainer = $('.issues-table tbody');
+
+                            // Replace the content while preserving the container
+                            $originalContainer.html($newContent.html());
+
+                            // Reinitialize all event handlers
+                            initIssueRowEventHandlers();
+                        },
+                        error: function() {
+                            if (typeof toastr !== 'undefined') {
+                                toastr.error('Failed to refresh issues list, but issue was created.');
+                            } else {
+                                alert('Failed to refresh issues list, but issue was created.');
+                            }
+                        }
+                    });
+                },
+                error: function(xhr) {
+                    // Reset button state
+                    saveBtn.prop('disabled', false);
+                    saveBtn.html('<i class="fa fa-save"></i> Save');
+
+                    // Show error message
+                    let errorMessage = 'Error creating issue';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error(errorMessage);
+                    } else {
+                        alert(errorMessage);
+                    }
+
+                    // Handle validation errors
+                    if (xhr.status === 422 && xhr.responseJSON?.errors) {
+                        const errors = xhr.responseJSON.errors;
+                        Object.keys(errors).forEach(field => {
+                            const $input = issueRow.find(`[data-field="${field}"]`);
+                            $input.addClass('is-invalid');
+
+                            // Add error message as tooltip
+                            $input.attr('title', errors[field][0]);
+                            $input.tooltip({
+                                trigger: 'manual',
+                                placement: 'top'
+                            }).tooltip('show');
+
+                            // Remove tooltip on input change
+                            $input.one('input change', function() {
+                                $(this).removeClass('is-invalid');
+                                $(this).tooltip('dispose');
+                            });
+                        });
+                    }
+                }
+            });
+        });
+    }
+
     $(document).ready(function() {
         $('#saveIssueBtn').on('click', function() {
             const $form = $('#addIssueForm');
@@ -815,25 +1051,17 @@
                                 // Create a temporary div to parse the response
                                 const $temp = $('<div>').html(response);
 
-                                // Find the issues section in the response
-                                const $newContent = $temp.find('.row:contains(".issue-card")');
-
-                                // Preserve the card background color and styling
-                                $newContent.find('.card.minicard').each(function() {
-                                    $(this).css({
-                                        'background-color': '#fff',
-                                        'transition': 'all 0.3s ease'
-                                    });
-                                });
+                                // Find the issues table in the response
+                                const $newContent = $temp.find('.issues-table tbody');
 
                                 // Get the original container
-                                const $originalContainer = $('.row:contains(".issue-card")');
+                                const $originalContainer = $('.issues-table tbody');
 
                                 // Replace the content while preserving the container
                                 $originalContainer.html($newContent.html());
 
                                 // Reinitialize all event handlers
-                                initIssueCardEventHandlers();
+                                initIssueRowEventHandlers();
                             },
                             error: function() {
                                 if (typeof toastr !== 'undefined') {
@@ -876,115 +1104,6 @@
             });
         });
 
-        // Function to reinitialize event handlers after refreshing issues list
-        function initIssueCardEventHandlers() {
-            // Reinitialize input change handlers for each issue card
-            $('.issue-card').each(function() {
-                const issueCard = $(this);
-                const saveButton = issueCard.find('.save-button');
-                const originalValues = {};
-
-                // Store original values
-                issueCard.find('input, select, textarea').each(function() {
-                    const field = $(this);
-                    originalValues[field.attr('name') || field.attr('data-field')] = field.val();
-                });
-
-                // Add change event listener to all inputs
-                issueCard.find('input, select, textarea').on('change', function() {
-                    const currentValues = {};
-                    issueCard.find('input, select, textarea').each(function() {
-                        const field = $(this);
-                        currentValues[field.attr('name') || field.attr('data-field')] = field.val();
-                    });
-
-                    // Check if any value has changed
-                    const hasChanges = Object.keys(originalValues).some(key =>
-                        originalValues[key] !== currentValues[key]
-                    );
-
-                    // Enable/disable save button based on changes
-                    saveButton.prop('disabled', !hasChanges);
-
-                    // Add/remove changed class to card
-                    if (hasChanges) {
-                        issueCard.find('.card').addClass('changed');
-                    } else {
-                        issueCard.find('.card').removeClass('changed');
-                    }
-                });
-
-                // Add save button click handler
-                saveButton.on('click', function() {
-                    const issueId = issueCard.data('issue-id');
-                    const formData = new FormData();
-
-                    // Collect all values
-                    issueCard.find('input, select, textarea').each(function() {
-                        const field = $(this);
-                        const fieldName = field.attr('name') || field.attr('data-field');
-                        const value = field.is('select') ? field.val() : field.val();
-                        formData.append(fieldName, value);
-                    });
-
-                    // Add CSRF token
-                    formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
-
-                    // Send AJAX request to update the issue
-                    $.ajax({
-                        url: `/issues/${issueId}/ajax-update`,
-                        method: 'POST',
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                        success: function(response) {
-                            if (response.success) {
-                                // Update original values to match new values
-                                issueCard.find('input, select, textarea').each(function() {
-                                    const field = $(this);
-                                    const fieldName = field.attr('name') || field.attr('data-field');
-                                    originalValues[fieldName] = field.val();
-                                });
-
-                                // Disable save button and remove changed class
-                                saveButton.prop('disabled', true);
-                                issueCard.find('.card').removeClass('changed');
-
-                                // Show success message
-                                if (typeof toastr !== 'undefined') {
-                                    toastr.success('Changes saved successfully!');
-                                } else {
-                                    alert('Changes saved successfully!');
-                                }
-                            } else {
-                                throw new Error(response.message || 'Failed to save changes');
-                            }
-                        },
-                        error: function(xhr) {
-                            let errorMessage = 'Error saving changes';
-                            if (xhr.responseJSON && xhr.responseJSON.message) {
-                                errorMessage = xhr.responseJSON.message;
-                            }
-                            if (typeof toastr !== 'undefined') {
-                                toastr.error(errorMessage);
-                            } else {
-                                alert(errorMessage);
-                            }
-                        }
-                    });
-                });
-
-                // Add comment and history button handlers
-                issueCard.find('.btn-outline-primary').on('click', function() {
-                    showComments(issueCard.data('issue-id'));
-                });
-
-                issueCard.find('.btn-outline-secondary').on('click', function() {
-                    showHistory(issueCard.data('issue-id'));
-                });
-            });
-        }
-
         // Remove validation classes when input changes
         $('#addIssueForm input, #addIssueForm select, #addIssueForm textarea').on('input change', function() {
             $(this).removeClass('is-invalid');
@@ -992,7 +1111,7 @@
         });
     });
 
-    // Add these functions before the initIssueCardEventHandlers function
+    // Functions for showing comments and history
     function showComments(issueId) {
         $.ajax({
             url: `/issues/${issueId}/comments`,

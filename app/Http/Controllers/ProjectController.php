@@ -13,10 +13,31 @@ class ProjectController extends Controller
 {
     public function index()
     {
-        $projects = Project::with('manager')
-            ->withCount('issues')
-            ->latest()
-            ->paginate(10);
+        $user = Auth::user();
+
+        // Admin, GM and CM can see all projects
+        if (in_array($user->role, ['o-admin', 'gm', 'cm'])) {
+            $projects = Project::with('manager')
+                ->withCount('issues')
+                ->latest()
+                ->paginate(10);
+        }
+        // PM can only see their own projects
+        elseif ($user->role === 'pm') {
+            $projects = Project::with('manager')
+                ->where('manager_id', $user->id)
+                ->withCount('issues')
+                ->latest()
+                ->paginate(10);
+        }
+        // Other roles can see projects they're members of
+        else {
+            $projects = $user->projects()
+                ->with('manager')
+                ->withCount('issues')
+                ->latest()
+                ->paginate(10);
+        }
 
         return view('projects.index', compact('projects'));
     }
@@ -98,10 +119,20 @@ class ProjectController extends Controller
 
     public function show(Project $project, \Illuminate\Http\Request $request)
     {
+        $user = Auth::user();
+
+        // Check if PM has access to this project
+        if ($user->role === 'pm' && $project->manager_id !== $user->id) {
+            // Check if user is a member of this project
+            if (!$project->members->contains($user)) {
+                abort(403, 'You do not have access to this project.');
+            }
+        }
+
         $project->load([
             'manager',
             'issues' => function($query) {
-                $query->latest()->take(5);
+                $query->latest();
             },
             'members'
         ]);
@@ -145,12 +176,26 @@ class ProjectController extends Controller
 
     public function edit(Project $project)
     {
+        $user = Auth::user();
+
+        // Check if PM has access to this project
+        if ($user->role === 'pm' && $project->manager_id !== $user->id) {
+            abort(403, 'You do not have access to edit this project.');
+        }
+
         $managers = User::where('role', 'pm')->get();
         return view('projects.edit', compact('project', 'managers'));
     }
 
     public function update(Request $request, Project $project)
     {
+        $user = Auth::user();
+
+        // Check if PM has access to this project
+        if ($user->role === 'pm' && $project->manager_id !== $user->id) {
+            abort(403, 'You do not have access to update this project.');
+        }
+
         $validated = $request->validate([
             // Basic Information
             'name' => 'required|string|max:255',
@@ -219,6 +264,13 @@ class ProjectController extends Controller
 
     public function members(Project $project)
     {
+        $user = Auth::user();
+
+        // Check if PM has access to this project
+        if ($user->role === 'pm' && $project->manager_id !== $user->id) {
+            abort(403, 'You do not have access to manage this project\'s members.');
+        }
+
         $members = $project->members;
         $availableUsers = User::whereDoesntHave('projects', function($query) use ($project) {
             $query->where('project_id', $project->id);
@@ -229,6 +281,13 @@ class ProjectController extends Controller
 
     public function addMember(Request $request, Project $project)
     {
+        $user = Auth::user();
+
+        // Check if PM has access to this project
+        if ($user->role === 'pm' && $project->manager_id !== $user->id) {
+            abort(403, 'You do not have access to add members to this project.');
+        }
+
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
         ]);
@@ -243,6 +302,13 @@ class ProjectController extends Controller
 
     public function removeMember(Request $request, Project $project, User $user)
     {
+        $currentUser = Auth::user();
+
+        // Check if PM has access to this project
+        if ($currentUser->role === 'pm' && $project->manager_id !== $currentUser->id) {
+            abort(403, 'You do not have access to remove members from this project.');
+        }
+
         if ($project->manager_id === $user->id) {
             return back()->with('error', 'Cannot remove the project manager.');
         }

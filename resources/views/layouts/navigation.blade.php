@@ -59,7 +59,7 @@
                             </div>
                         </x-dropdown-link>
 
-                        @if(Auth::user()->role === 'o-admin')
+                        @if(Auth::user()->role === 'o-admin' || Auth::user()->role === 'cm')
                         <x-dropdown-link :href="route('users.index')">
                             <div class="flex items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -136,7 +136,7 @@
                     {{ __('My Profile') }}
                 </x-responsive-nav-link>
 
-                @if(Auth::user()->role === 'o-admin')
+                @if(Auth::user()->role === 'o-admin' || Auth::user()->role === 'cm')
                 <x-responsive-nav-link :href="route('users.index')">
                     {{ __('Manage Users') }}
                 </x-responsive-nav-link>

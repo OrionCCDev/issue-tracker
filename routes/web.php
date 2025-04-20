@@ -23,7 +23,8 @@ use App\Http\Controllers\NotificationController;
 
 // Welcome/Landing page
 Route::get('/', function () {
-    return view('welcome');
+    // If user is logged in, redirect to dashboard, otherwise show login page
+    return redirect()->route('login');
 });
 
 // Authentication Routes (provided by Laravel Breeze)
@@ -47,11 +48,24 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
     Route::get('/notifications/create-samples', [NotificationController::class, 'createSampleNotifications'])->name('notifications.create-samples');
 
-    // Users Management (Admin only)
-    Route::resource('users', UserController::class);
+    // Users Management (Admin and CM only)
+    Route::middleware('role:o-admin|cm')->group(function () {
+        Route::resource('users', UserController::class);
+    });
 
-    // Projects Routes
-    Route::resource('projects', ProjectController::class);
+    // Projects Creation/Deletion (Admin and CM only)
+    Route::middleware('role:o-admin|cm')->group(function () {
+        Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
+        Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
+        Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
+    });
+
+    // Projects Routes - Accessible to all authenticated users
+    Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
+    Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
+    Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
+    Route::put('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
+
     Route::get('projects/{project}/members', [ProjectController::class, 'members'])->name('projects.members');
     Route::post('projects/{project}/members', [ProjectController::class, 'addMember'])->name('projects.members.add');
     Route::delete('projects/{project}/members/{user}', [ProjectController::class, 'removeMember'])->name('projects.members.remove');
@@ -79,9 +93,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('meetings/{meeting}/project-changes', [MeetingController::class, 'recordProjectChange'])->name('meetings.record-project-change');
 
     // Standalone Issues Routes (for listing all issues across projects)
-    Route::get('/issues', [IssueController::class, 'index'])->name('issues.index');
-    Route::get('/issues/create', [IssueController::class, 'create'])->name('issues.create');
+    Route::get('/issues/my-issues', [IssueController::class, 'myIssues'])->name('issues.my-issues');
     Route::get('/issues/mark-all-read', [IssueController::class, 'markAllRead'])->name('issues.markAllRead');
+    Route::get('/issues/create', [IssueController::class, 'create'])->name('issues.create');
+    Route::get('/issues', [IssueController::class, 'index'])->name('issues.index');
     Route::post('/issues', [IssueController::class, 'store'])->name('issues.store');
     Route::get('/issues/{issue}', [IssueController::class, 'show'])->name('issues.show');
     Route::get('/issues/{issue}/edit', [IssueController::class, 'edit'])->name('issues.edit');

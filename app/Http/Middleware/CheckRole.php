@@ -22,9 +22,16 @@ class CheckRole
             return redirect('login');
         }
 
+        $user = Auth::user();
+
+        // CM and GM have access to all projects and data
+        if (in_array($user->role, ['cm', 'gm']) && !str_contains($request->path(), 'users')) {
+            return $next($request);
+        }
+
         $roles = explode('|', $role);
 
-        if (!in_array(Auth::user()->role, $roles)) {
+        if (!in_array($user->role, $roles)) {
             abort(403, 'Unauthorized action.');
         }
 

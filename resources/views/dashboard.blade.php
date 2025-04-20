@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<!--    container-fluid-fluid-fluid -->
+<!--    container-fluid-fluid -->
 <div class="   container-fluid-fluid-fluid mt-xl-50 mt-sm-30 mt-15">
     <!-- Title -->
     <div class="hk-pg-header align-items-top">
@@ -11,6 +11,18 @@
         </div>
     </div>
     <!-- /Title -->
+
+    <!-- Role-specific Alert -->
+    @if(in_array(Auth::user()->role, ['o-admin', 'cm', 'gm']))
+    <div class="alert alert-info mb-20">
+        <strong>Notice:</strong> You are viewing the complete organization dashboard.
+    </div>
+    @else
+    <div class="alert alert-light mb-20">
+        <strong>Notice:</strong> You are viewing your personal project dashboard.
+    </div>
+    @endif
+    <!-- /Role-specific Alert -->
 
     <!-- Row -->
     <div class="row">
@@ -78,15 +90,15 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between mb-5">
                                 <div>
-                                    <span class="d-block font-15 text-dark font-weight-500">Resolved</span>
+                                    <span class="d-block font-15 text-dark font-weight-500">Assigned to Me</span>
                                 </div>
                                 <div>
-                                    <span class="badge badge-success">{{ $resolvedIssues ?? 0 }}</span>
+                                    <span class="badge badge-primary">{{ $myAssignedIssuesCount ?? 0 }}</span>
                                 </div>
                             </div>
                             <div>
-                                <span class="d-block display-4 text-dark mb-5">{{ $resolvedIssues ?? 0 }}</span>
-                                <small class="d-block">In the last 30 days</small>
+                                <span class="d-block display-4 text-dark mb-5">{{ $myAssignedIssuesCount ?? 0 }}</span>
+                                <small class="d-block">Issues assigned to you</small>
                             </div>
                         </div>
                     </div>
@@ -124,7 +136,7 @@
 
     <!-- Row -->
     <div class="row">
-        <div class="col-xl-6">
+        <div class="col-12">
             <section class="hk-sec-wrapper">
                 <div class="row mb-15">
                     <div class="col-sm-6">
@@ -132,8 +144,9 @@
                     </div>
                     <div class="col-sm-6 text-right">
                         <a href="{{ route('issues.index', ['assigned_to' => Auth::id()]) }}" class="btn btn-sm btn-outline-primary">
-                            View All
+                            View All My Issues
                         </a>
+
                     </div>
                 </div>
                 <div class="row">
@@ -212,6 +225,108 @@
             </section>
         </div>
 
+        <div class="col-12">
+            <section class="hk-sec-wrapper">
+                <div class="row mb-15">
+                    <div class="col-sm-6">
+                        <h5 class="hk-sec-title">Project Issues</h5>
+                    </div>
+                    <div class="col-sm-6 text-right">
+                        <a href="{{ route('issues.my-issues') }}" class="btn btn-sm btn-outline-primary">
+                            View All Project Issues
+                        </a>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm">
+                        <div class="table-wrap">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Title</th>
+                                            <th>Project</th>
+                                            <th>Status</th>
+                                            <th>Priority</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @php
+                                            // Get project issues, excluding assigned issues to avoid duplication
+                                            $myProjectIssues = collect();
+                                            foreach($myProjects as $project) {
+                                                $projectIssues = $project->issues()->latest()->take(3)->get();
+                                                $myProjectIssues = $myProjectIssues->concat($projectIssues);
+                                            }
+                                            $myProjectIssues = $myProjectIssues->unique('id')->take(5);
+                                        @endphp
+
+                                        @forelse($myProjectIssues as $issue)
+                                        <tr>
+                                            <td>
+                                                <a href="{{ route('projects.issues.show', [$issue->project_id, $issue->id]) }}">
+                                                    {{ $issue->title }}
+                                                </a>
+                                            </td>
+                                            <td>{{ $issue->project->name }}</td>
+                                            <td>
+                                                @switch($issue->status)
+                                                    @case('open')
+                                                        <span class="badge badge-primary">Open</span>
+                                                        @break
+                                                    @case('in_progress')
+                                                        <span class="badge badge-info">In Progress</span>
+                                                        @break
+                                                    @case('review')
+                                                        <span class="badge badge-warning">Review</span>
+                                                        @break
+                                                    @case('resolved')
+                                                        <span class="badge badge-success">Resolved</span>
+                                                        @break
+                                                    @case('closed')
+                                                        <span class="badge badge-secondary">Closed</span>
+                                                        @break
+                                                    @default
+                                                        <span class="badge badge-light">{{ $issue->status }}</span>
+                                                @endswitch
+                                            </td>
+                                            <td>
+                                                @switch($issue->priority)
+                                                    @case('low')
+                                                        <span class="badge badge-soft-success">Low</span>
+                                                        @break
+                                                    @case('medium')
+                                                        <span class="badge badge-soft-primary">Medium</span>
+                                                        @break
+                                                    @case('high')
+                                                        <span class="badge badge-soft-warning">High</span>
+                                                        @break
+                                                    @case('critical')
+                                                        <span class="badge badge-soft-danger">Critical</span>
+                                                        @break
+                                                    @default
+                                                        <span class="badge badge-soft-secondary">{{ $issue->priority }}</span>
+                                                @endswitch
+                                            </td>
+                                        </tr>
+                                        @empty
+                                        <tr>
+                                            <td colspan="4" class="text-center">No project issues found</td>
+                                        </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+    <!-- /Row -->
+
+    <!-- Row -->
+    <div class="row">
         <div class="col-xl-6">
             <section class="hk-sec-wrapper">
                 <div class="row mb-15">
@@ -271,11 +386,15 @@
             <section class="hk-sec-wrapper">
                 <div class="row mb-15">
                     <div class="col-sm-6">
-                        <h5 class="hk-sec-title">My Projects</h5>
+                        @if(in_array(Auth::user()->role, ['o-admin', 'cm', 'gm']))
+                            <h5 class="hk-sec-title">All Projects</h5>
+                        @else
+                            <h5 class="hk-sec-title">My Projects</h5>
+                        @endif
                     </div>
                     <div class="col-sm-6 text-right">
-                        <a href="{{ route('projects.index') }}" class="btn btn-sm btn-outline-primary">
-                            View All Projects
+                        <a href="{{ route('issues.my-issues') }}" class="btn btn-sm btn-outline-primary">
+                            View All My Project Issues
                         </a>
                     </div>
                 </div>
@@ -293,12 +412,12 @@
                                     </p>
                                     <div class="d-flex justify-content-between mt-15">
                                         <div>
-                                            <span class="text-muted">Issues: </span>
+                                            <span class="text-muted">All Issues: </span>
                                             <span class="badge badge-primary">{{ $project->issues->count() }}</span>
                                         </div>
                                         <div>
-                                            <span class="text-muted">Team: </span>
-                                            <span class="badge badge-info">{{ $project->members->count() }}</span>
+                                            <span class="text-muted">Resolved: </span>
+                                            <span class="badge badge-success">{{ $project->issues->whereIn('status', ['resolved', 'closed'])->count() }}</span>
                                         </div>
                                     </div>
                                     <div class="progress progress-sm mt-10">

@@ -32,7 +32,32 @@ class IssueController extends Controller
 
     public function index(Request $request)
     {
+        $user = Auth::user();
         $query = Issue::query()->with(['creator', 'assignees', 'project']);
+        $viewMode = $request->has('view') && $request->view === 'split' ? 'split' : 'standard';
+
+        // GM and CM can see all issues
+        if (in_array($user->role, ['gm', 'cm', 'o-admin'])) {
+            // No additional filtering needed
+        }
+        // PMs can only see issues from their projects
+        elseif ($user->role === 'pm') {
+            // Get projects managed by this PM
+            $managedProjectIds = $user->managedProjects()->pluck('id')->toArray();
+
+            // Include projects they're a member of
+            $memberProjectIds = $user->projects()->pluck('projects.id')->toArray();
+
+            // Combine both arrays and get unique values
+            $accessibleProjectIds = array_unique(array_merge($managedProjectIds, $memberProjectIds));
+
+            $query->whereIn('project_id', $accessibleProjectIds);
+        }
+        // Other roles can only see issues from projects they're a member of
+        else {
+            $memberProjectIds = $user->projects()->pluck('projects.id')->toArray();
+            $query->whereIn('project_id', $memberProjectIds);
+        }
 
         // Apply filters if present
         if ($request->has('project_id') && $request->project_id) {
@@ -58,10 +83,21 @@ class IssueController extends Controller
         }
 
         $issues = $query->latest()->paginate(15);
-        $projects = Project::all();
+
+        // Get the appropriate list of projects based on user role
+        if (in_array($user->role, ['gm', 'cm', 'o-admin'])) {
+            $projects = Project::all();
+        } elseif ($user->role === 'pm') {
+            $managedProjects = $user->managedProjects()->get();
+            $memberProjects = $user->projects()->get();
+            $projects = $managedProjects->merge($memberProjects)->unique('id');
+        } else {
+            $projects = $user->projects()->get();
+        }
+
         $users = User::all();
 
-        return view('issues.index', compact('issues', 'projects', 'users'));
+        return view('issues.index', compact('issues', 'projects', 'users', 'viewMode'));
     }
 
     public function projectIssues(Project $project)
@@ -75,8 +111,15 @@ class IssueController extends Controller
         return view('issues.create', compact('project', 'members'));
     }
 
-    public function create(Project $project)
+    public function create(Request $request)
     {
+        $project = null;
+
+        // Check if project_id is provided as a query parameter
+        if ($request->has('project')) {
+            $project = Project::findOrFail($request->project);
+        }
+
         $members = User::all();
 
         return view('issues.create', compact('project', 'members'));
@@ -330,6 +373,58 @@ class IssueController extends Controller
     }
 
     /**
+     * Display issues from the authenticated user's projects
+     */
+    public function myIssues(Request $request)
+    {
+        $user = Auth::user();
+
+        // Get projects the user is a member of
+        $myProjects = $user->projects()->get();
+        $myProjectIds = $myProjects->pluck('id')->toArray();
+
+        // If user is a project manager, also include projects they manage
+        if ($user->role === 'pm') {
+            $managedProjects = $user->managedProjects()->get();
+            $myProjects = $myProjects->merge($managedProjects)->unique('id');
+            $myProjectIds = $myProjects->pluck('id')->toArray();
+        }
+
+        // Build query for issues from user's projects that are assigned to the user
+        $query = Issue::query()->with(['creator', 'assignees', 'project'])
+            ->whereIn('project_id', $myProjectIds)
+            ->whereHas('assignees', function($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+
+        // Apply filters if present
+        if ($request->has('project_id') && $request->project_id) {
+            $query->where('project_id', $request->project_id);
+        }
+
+        if ($request->has('status') && $request->status) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->has('priority') && $request->priority) {
+            $query->where('priority', $request->priority);
+        }
+
+        // Apply search if present
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $myIssues = $query->latest()->paginate(15);
+
+        return view('issues.my-issues', compact('myIssues', 'myProjects'));
+    }
+
+    /**
      * Get issue details for modal display via AJAX
      */
     public function getIssueDetails(Issue $issue)
@@ -401,7 +496,9 @@ class IssueController extends Controller
 
             // Update assignees if provided
             if (isset($data['assignees'])) {
-                $issue->assignees()->sync($data['assignees']);
+                // Use empty array for sync if assignees is an empty string
+                $assignees = $data['assignees'] === '' ? [] : $data['assignees'];
+                $issue->assignees()->sync($assignees);
             }
 
             // Load relationships
@@ -416,7 +513,7 @@ class IssueController extends Controller
                 'issue' => $issue
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error updating issue: ' . $e->getMessage());
+            Log::error('Error updating issue: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Error updating issue: ' . $e->getMessage()

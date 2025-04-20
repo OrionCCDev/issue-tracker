@@ -25,7 +25,7 @@
                 </button>
                 <div class="dropdown-menu">
                     @foreach($projects as $project)
-                        <a class="dropdown-item" href="{{ route('issues.create', ['project' => $project->id]) }}">{{ $project->name }}</a>
+                        <a class="dropdown-item" href="{{ route('projects.issues.create', $project) }}">{{ $project->name }}</a>
                     @endforeach
                 </div>
             </div>
@@ -96,9 +96,196 @@
 
     <!-- Issues List -->
     <section class="hk-sec-wrapper">
-        <h5 class="hk-sec-title">Issues List</h5>
+        <h5 class="hk-sec-title">
+            @if(request('assigned_to') == Auth::id())
+                @if(isset($viewMode) && $viewMode == 'split')
+                    <span class="badge badge-info mr-2">Split View</span>
+                @endif
+                My Assigned Issues
+            @else
+                Issues List
+            @endif
+        </h5>
         <div class="row">
             <div class="col-sm">
+                @if(isset($viewMode) && $viewMode == 'split')
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="mb-15">My Assigned Issues</h6>
+                        <div class="table-wrap">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Title</th>
+                                            <th>Project</th>
+                                            <th>Status</th>
+                                            <th>Priority</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @php
+                                            $assignedIssues = $issues->filter(function($issue) {
+                                                return $issue->assignees->contains('id', Auth::id());
+                                            });
+                                        @endphp
+                                        @forelse($assignedIssues as $issue)
+                                        <tr>
+                                            <td>{{ $issue->id }}</td>
+                                            <td>
+                                                <a href="{{ route('issues.show', $issue->id) }}">
+                                                    {{ $issue->title }}
+                                                </a>
+                                            </td>
+                                            <td>
+                                                <a href="{{ route('projects.show', ['project' => $issue->project_id]) }}">
+                                                    {{ $issue->project->name }}
+                                                </a>
+                                            </td>
+                                            <td>
+                                                @switch($issue->status)
+                                                    @case('open')
+                                                        <span class="badge badge-primary">Open</span>
+                                                        @break
+                                                    @case('in_progress')
+                                                        <span class="badge badge-info">In Progress</span>
+                                                        @break
+                                                    @case('review')
+                                                        <span class="badge badge-warning">Review</span>
+                                                        @break
+                                                    @case('resolved')
+                                                        <span class="badge badge-success">Resolved</span>
+                                                        @break
+                                                    @case('closed')
+                                                        <span class="badge badge-secondary">Closed</span>
+                                                        @break
+                                                    @default
+                                                        <span class="badge badge-light">{{ $issue->status }}</span>
+                                                @endswitch
+                                            </td>
+                                            <td>
+                                                @switch($issue->priority)
+                                                    @case('low')
+                                                        <span class="badge badge-soft-success">Low</span>
+                                                        @break
+                                                    @case('medium')
+                                                        <span class="badge badge-soft-primary">Medium</span>
+                                                        @break
+                                                    @case('high')
+                                                        <span class="badge badge-soft-warning">High</span>
+                                                        @break
+                                                    @case('critical')
+                                                        <span class="badge badge-soft-danger">Critical</span>
+                                                        @break
+                                                    @default
+                                                        <span class="badge badge-soft-secondary">{{ $issue->priority }}</span>
+                                                @endswitch
+                                            </td>
+                                            <td>
+                                                <a href="{{ route('issues.show', $issue->id) }}" class="btn btn-xs btn-primary">View</a>
+                                            </td>
+                                        </tr>
+                                        @empty
+                                        <tr>
+                                            <td colspan="6" class="text-center">No issues assigned to you</td>
+                                        </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="mb-15">Project Issues</h6>
+                        <div class="table-wrap">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Title</th>
+                                            <th>Project</th>
+                                            <th>Status</th>
+                                            <th>Priority</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @php
+                                            $projectIssues = $issues->reject(function($issue) {
+                                                return $issue->assignees->contains('id', Auth::id());
+                                            });
+                                        @endphp
+                                        @forelse($projectIssues as $issue)
+                                        <tr>
+                                            <td>{{ $issue->id }}</td>
+                                            <td>
+                                                <a href="{{ route('issues.show', $issue->id) }}">
+                                                    {{ $issue->title }}
+                                                </a>
+                                            </td>
+                                            <td>
+                                                <a href="{{ route('projects.show', ['project' => $issue->project_id]) }}">
+                                                    {{ $issue->project->name }}
+                                                </a>
+                                            </td>
+                                            <td>
+                                                @switch($issue->status)
+                                                    @case('open')
+                                                        <span class="badge badge-primary">Open</span>
+                                                        @break
+                                                    @case('in_progress')
+                                                        <span class="badge badge-info">In Progress</span>
+                                                        @break
+                                                    @case('review')
+                                                        <span class="badge badge-warning">Review</span>
+                                                        @break
+                                                    @case('resolved')
+                                                        <span class="badge badge-success">Resolved</span>
+                                                        @break
+                                                    @case('closed')
+                                                        <span class="badge badge-secondary">Closed</span>
+                                                        @break
+                                                    @default
+                                                        <span class="badge badge-light">{{ $issue->status }}</span>
+                                                @endswitch
+                                            </td>
+                                            <td>
+                                                @switch($issue->priority)
+                                                    @case('low')
+                                                        <span class="badge badge-soft-success">Low</span>
+                                                        @break
+                                                    @case('medium')
+                                                        <span class="badge badge-soft-primary">Medium</span>
+                                                        @break
+                                                    @case('high')
+                                                        <span class="badge badge-soft-warning">High</span>
+                                                        @break
+                                                    @case('critical')
+                                                        <span class="badge badge-soft-danger">Critical</span>
+                                                        @break
+                                                    @default
+                                                        <span class="badge badge-soft-secondary">{{ $issue->priority }}</span>
+                                                @endswitch
+                                            </td>
+                                            <td>
+                                                <a href="{{ route('issues.show', $issue->id) }}" class="btn btn-xs btn-primary">View</a>
+                                            </td>
+                                        </tr>
+                                        @empty
+                                        <tr>
+                                            <td colspan="6" class="text-center">No other project issues found</td>
+                                        </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @else
                 <div class="table-wrap">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
@@ -219,6 +406,7 @@
                         </table>
                     </div>
                 </div>
+                @endif
                 <div class="d-flex justify-content-end mt-20">
                     {{ $issues->appends(request()->query())->links() }}
                 </div>

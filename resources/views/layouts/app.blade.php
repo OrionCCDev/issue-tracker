@@ -187,7 +187,7 @@
                             </a>
                         </li>
                         <li class="nav-item {{ Request::is('issues*') ? 'active' : '' }}">
-                            <a class="nav-link d-flex align-items-center" href="{{ route('issues.index') }}" style="padding: 0.5rem 1rem;">
+                            <a class="nav-link d-flex align-items-center" href="{{ route('issues.my-issues') }}" style="padding: 0.5rem 1rem;">
                                 <i class="fa fa-bug fa-lg me-2 mr-2"></i>
                                 <span class="nav-link-text">Issues</span>
                             </a>

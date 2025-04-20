@@ -7,9 +7,11 @@
         <div>
             <h2 class="hk-pg-title font-weight-600 mb-10">Projects Management</h2>
         </div>
+        @if(Auth::user()->role === 'o-admin' || Auth::user()->role === 'cm')
         <div class="d-flex">
             <a href="{{ route('projects.create') }}" class="btn btn-primary btn-sm">Add New Project</a>
         </div>
+        @endif
     </div>
     <!-- Row -->
     <div class="row">
@@ -65,6 +67,7 @@
                                                 <a href="{{ route('projects.show', $project->id) }}" class="btn btn-info btn-sm">View</a>
                                                 <a href="{{ route('projects.edit', $project->id) }}" class="btn btn-primary btn-sm">Edit</a>
                                                 <a href="{{ route('projects.issues.create', $project->id) }}" class="btn btn-success btn-sm">Add Issue</a>
+                                                @if(Auth::user()->role === 'o-admin' || Auth::user()->role === 'cm')
                                                 <button type="button" class="btn btn-danger btn-sm"
                                                     onclick="if(confirm('Are you sure you want to delete this project?')) {
                                                         document.getElementById('delete-form-{{ $project->id }}').submit();
@@ -77,6 +80,7 @@
                                                     @csrf
                                                     @method('DELETE')
                                                 </form>
+                                                @endif
                                             </td>
                                         </tr>
                                         @empty

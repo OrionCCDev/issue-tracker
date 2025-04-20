@@ -112,7 +112,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="row">
                             <div class="col-md-3">
                                 <div class="form-group">
@@ -259,7 +259,7 @@
                             </div>
                         </div>
 
-                    
+
                         <div class="row">
                             <div class="col-md-3">
                                 <div class="form-group">
@@ -306,20 +306,40 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="description" class="col-form-label">Description</label>
-                            <textarea id="description" class="form-control @error('description') is-invalid @enderror" name="description">{{ old('description', $project->description) }}</textarea>
-                            @error('description')
-                                <span class="invalid-feedback" role="alert">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
-                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="description" class="col-form-label">Description</label>
+                                    <textarea id="description" class="form-control @error('description') is-invalid @enderror" name="description" rows="4">{{ old('description', $project->description) }}</textarea>
+                                    @error('description')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="project_value" class="col-form-label">Project Value</label>
+                                    <input id="project_value" type="number" step="0.01" class="form-control @error('project_value') is-invalid @enderror" name="project_value" value="{{ old('project_value', $project->project_value) }}" onchange="calculateRemainingUnbilled()" oninput="calculateRemainingUnbilled()">
+                                    @error('project_value')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
 
-                        <div class="form-group mb-0">
-                            <button type="submit" class="btn btn-primary" id="updateProjectBtn">
-                                <span class="button-text">Update Project</span>
-                            </button>
+                                <!-- Submit Button -->
+                                <div class="form-group mt-4 text-right">
+                                    @if(Auth::user()->role === 'o-admin' || Auth::user()->role === 'cm' || (Auth::user()->role === 'pm' && $project->manager_id === Auth::id()))
+                                    <button type="button" class="btn btn-secondary" onclick="resetForm()">Reset</button>
+                                    <button type="submit" class="btn btn-primary updateBtn">
+                                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                        <span class="button-text">Update Project</span>
+                                    </button>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -381,24 +401,24 @@ document.getElementById('total_billed').addEventListener('input', calculateRemai
 // Add AJAX form submission
 $(document).ready(function() {
     let isSubmitting = false;
-    
+
     $('#projectDetailsForm').on('submit', function(e) {
         e.preventDefault();
-        
+
         if (isSubmitting) return;
-        
+
         const $form = $(this);
         const $submitBtn = $('#updateProjectBtn');
         const $buttonText = $submitBtn.find('.button-text');
-        
+
         // Show loading state
         isSubmitting = true;
         $submitBtn.prop('disabled', true);
         $buttonText.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...');
-        
+
         // Collect form data
         const formData = new FormData(this);
-        
+
         // Send AJAX request
         $.ajax({
             url: $form.attr('action'),
@@ -417,7 +437,7 @@ $(document).ready(function() {
                 resetButtonState();
                 // Then show error message
                 toastr.error(xhr.responseJSON.message || 'Error updating project details');
-                
+
                 if (xhr.status === 422) {
                     const errors = xhr.responseJSON.errors;
                     Object.keys(errors).forEach(field => {
@@ -428,14 +448,14 @@ $(document).ready(function() {
                 }
             }
         });
-        
+
         function resetButtonState() {
             isSubmitting = false;
             $submitBtn.prop('disabled', false);
             $buttonText.text('Update Project');
         }
     });
-    
+
     // Remove validation classes when input changes
     $('input, select, textarea').on('input change', function() {
         $(this).removeClass('is-invalid');

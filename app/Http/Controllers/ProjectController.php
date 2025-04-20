@@ -2,6 +2,7 @@
 // app/Http/Controllers/ProjectController.php
 namespace App\Http\Controllers;
 
+use App\Events\ProjectCreated;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -97,6 +98,12 @@ class ProjectController extends Controller
 
         $project = Project::create($validated);
         $project->members()->attach($validated['manager_id']);
+
+        // Refresh the model with relationships to ensure all data is loaded
+        $project = Project::with('manager')->findOrFail($project->id);
+
+        // Dispatch the project created event
+        event(new ProjectCreated($project));
 
         // Get all users to notify
         $users = User::all();

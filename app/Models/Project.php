@@ -41,6 +41,7 @@ class Project extends Model
         'commencement_date' => 'date',
         'completion_date' => 'date',
         'expected_invoice_date' => 'date',
+        'variation_status' => 'date',
         'project_value' => 'decimal:2',
         'total_billed' => 'decimal:2',
         'remaining_unbilled' => 'decimal:2',
@@ -49,7 +50,9 @@ class Project extends Model
         'variance_percentage' => 'decimal:2',
         'variation_number' => 'decimal:2',
         'current_invoice_value' => 'decimal:2',
-        'previous_invoice_value' => 'decimal:2'
+        'previous_invoice_value' => 'decimal:2',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime'
     ];
 
     // Accessor for current invoice month name

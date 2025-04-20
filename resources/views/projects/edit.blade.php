@@ -191,7 +191,21 @@
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="variation_status" class="col-form-label">Variation Status</label>
-                                    <input id="variation_status" type="date" class="form-control @error('variation_status') is-invalid @enderror" name="variation_status" value="{{ old('variation_status', $project->variation_status ? $project->variation_status->format('Y-m-d') : '') }}">
+                                    <input id="variation_status" type="date" class="form-control @error('variation_status') is-invalid @enderror" name="variation_status" value="@php
+                                        try {
+                                            if ($project->variation_status) {
+                                                if ($project->variation_status instanceof \Carbon\Carbon) {
+                                                    echo $project->variation_status->format('Y-m-d');
+                                                } elseif (is_string($project->variation_status)) {
+                                                    echo $project->variation_status;
+                                                }
+                                            } else {
+                                                echo '';
+                                            }
+                                        } catch (\Exception $e) {
+                                            echo '';
+                                        }
+                                    @endphp">
                                     @error('variation_status')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>

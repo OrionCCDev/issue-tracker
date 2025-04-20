@@ -3,27 +3,24 @@
 namespace App\Notifications;
 
 use App\Models\Issue;
-use App\Models\User;
 use App\Models\UserNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class IssueAssigned extends Notification implements ShouldQueue
+class IssueCreated extends Notification implements ShouldQueue
 {
     use Queueable;
 
     protected $issue;
-    protected $assignedBy;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(Issue $issue, User $assignedBy)
+    public function __construct(Issue $issue)
     {
         $this->issue = $issue;
-        $this->assignedBy = $assignedBy;
     }
 
     /**
@@ -42,13 +39,13 @@ class IssueAssigned extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Issue Assigned: ' . $this->issue->title)
-            ->line('You have been assigned to an issue.')
+            ->subject('New Issue: ' . $this->issue->title)
+            ->line('A new issue has been created for a project you are involved with.')
             ->line('Project: ' . $this->issue->project->name)
             ->line('Issue: ' . $this->issue->title)
             ->line('Priority: ' . $this->issue->priority)
             ->line('Status: ' . $this->issue->status)
-            ->line('Assigned by: ' . $this->assignedBy->name)
+            ->line('Created by: ' . $this->issue->creator->name)
             ->action('View Issue', url('/projects/' . $this->issue->project_id . '/issues/' . $this->issue->id))
             ->line('Thank you for using our application!');
     }
@@ -65,10 +62,10 @@ class IssueAssigned extends Notification implements ShouldQueue
             'issue_title' => $this->issue->title,
             'project_id' => $this->issue->project_id,
             'project_name' => $this->issue->project->name,
-            'assigned_by_id' => $this->assignedBy->id,
-            'assigned_by_name' => $this->assignedBy->name,
-            'type' => 'issue_assigned',
-            'message' => 'You have been assigned to issue "' . $this->issue->title . '" by ' . $this->assignedBy->name,
+            'created_by_id' => $this->issue->created_by,
+            'created_by_name' => $this->issue->creator->name,
+            'type' => 'issue_created',
+            'message' => 'New issue "' . $this->issue->title . '" has been created by ' . $this->issue->creator->name,
         ];
     }
 
@@ -80,7 +77,7 @@ class IssueAssigned extends Notification implements ShouldQueue
         // Create a user notification
         UserNotification::create([
             'user_id' => $notifiable->id,
-            'type' => 'App\\Notifications\\IssueAssigned',
+            'type' => 'App\\Notifications\\IssueCreated',
             'notifiable_id' => $this->issue->id,
             'notifiable_type' => get_class($this->issue),
             'data' => $this->toArray($notifiable),

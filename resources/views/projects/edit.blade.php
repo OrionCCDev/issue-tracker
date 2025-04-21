@@ -383,9 +383,9 @@ function calculateVariance() {
 }
 
 function calculateRemainingUnbilled() {
-    const variationNumber = parseFloat(document.getElementById('variation_number').value) || 0;
+    const projectValue = parseFloat(document.getElementById('project_value').value) || 0;
     const totalBilled = parseFloat(document.getElementById('total_billed').value) || 0;
-    const remainingUnbilled = variationNumber - totalBilled;
+    const remainingUnbilled = projectValue - totalBilled;
 
     const remainingUnbilledInput = document.getElementById('remaining_unbilled');
     remainingUnbilledInput.value = remainingUnbilled.toFixed(2);
@@ -409,7 +409,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Calculate on input to make it more responsive
 document.getElementById('planned_percentage').addEventListener('input', calculateVariance);
 document.getElementById('actual_percentage').addEventListener('input', calculateVariance);
-document.getElementById('variation_number').addEventListener('input', calculateRemainingUnbilled);
+document.getElementById('project_value').addEventListener('input', calculateRemainingUnbilled);
 document.getElementById('total_billed').addEventListener('input', calculateRemainingUnbilled);
 
 // Add AJAX form submission

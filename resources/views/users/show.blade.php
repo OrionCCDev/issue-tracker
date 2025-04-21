@@ -48,6 +48,14 @@
                             @endif mt-2">
                             {{ $user->role }}
                         </span>
+
+                        @if(Auth::id() === $user->id)
+                        <div class="mt-3">
+                            <a href="{{ route('profile.edit') }}" class="btn btn-primary btn-sm">
+                                Edit My Profile
+                            </a>
+                        </div>
+                        @endif
                     </div>
 
                     <!-- User Details -->
@@ -67,6 +75,17 @@
                                 </table>
                             </div>
                         </div>
+
+                        @if(Auth::user()->role === 'o-admin' || Auth::user()->role === 'cm')
+                        <div class="mt-3">
+                            <form method="POST" action="{{ route('users.reset-password', $user) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to reset the password to Orion@123?');">
+                                @csrf
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    Reset Password to Orion@123
+                                </button>
+                            </form>
+                        </div>
+                        @endif
 
                         @if($user->managedProjects->count() > 0)
                             <h5 class="mt-5 mb-3">Managed Projects</h5>

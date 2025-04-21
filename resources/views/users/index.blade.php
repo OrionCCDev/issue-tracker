@@ -79,6 +79,10 @@
                                                 <td>
                                                     <a href="{{ route('users.show', $user) }}" class="btn btn-info btn-sm">View</a>
                                                     <a href="{{ route('users.edit', $user) }}" class="btn btn-primary btn-sm">Edit</a>
+                                                    <form method="POST" action="{{ route('users.reset-password', $user) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to reset the password to Orion@123?');">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-warning btn-sm">Reset Password</button>
+                                                    </form>
                                                     @if(Auth::id() !== $user->id)
                                                     <button type="button" class="btn btn-danger btn-sm"
                                                         onclick="if(confirm('Are you sure you want to delete this user?')) {

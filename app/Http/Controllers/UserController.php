@@ -112,4 +112,21 @@ class UserController extends Controller
         return redirect()->route('users.index')
             ->with('success', 'User deleted successfully.');
     }
+
+    public function resetPassword(User $user)
+    {
+        // Check if current user is an admin or cm
+        if (!in_array(Auth::user()->role, ['o-admin', 'cm'])) {
+            return redirect()->back()
+                ->with('error', 'You do not have permission to reset passwords.');
+        }
+
+        // Reset the password to Orion@123
+        $user->update([
+            'password' => Hash::make('Orion@123'),
+        ]);
+
+        return redirect()->route('users.show', $user)
+            ->with('success', 'Password has been reset to Orion@123');
+    }
 }

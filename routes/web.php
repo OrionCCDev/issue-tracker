@@ -52,6 +52,7 @@ Route::middleware(['auth'])->group(function () {
     // Users Management (Admin and CM only)
     Route::middleware('role:o-admin|cm')->group(function () {
         Route::resource('users', UserController::class);
+        Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
     });
 
     // Projects Creation/Deletion (Admin and CM only)

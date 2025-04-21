@@ -167,7 +167,7 @@
 
                                 <div class="form-group">
                                     <label for="project_value">Project Value</label>
-                                    <input id="project_value" type="number" step="0.01" class="form-control @error('project_value') is-invalid @enderror" name="project_value" value="{{ old('project_value', 0) }}">
+                                    <input id="project_value" type="number" step="0.01" class="form-control @error('project_value') is-invalid @enderror" name="project_value" value="{{ old('project_value', 0) }}" onchange="calculateRemainingUnbilled()" oninput="calculateRemainingUnbilled()">
                                     @error('project_value')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
@@ -371,9 +371,9 @@ function calculateVariance() {
 }
 
 function calculateRemainingUnbilled() {
-    const variationAmount = parseFloat(document.getElementById('variation_amount').value) || 0;
+    const projectValue = parseFloat(document.getElementById('project_value').value) || 0;
     const totalBilled = parseFloat(document.getElementById('total_billed').value) || 0;
-    const remainingUnbilled = variationAmount - totalBilled;
+    const remainingUnbilled = projectValue - totalBilled;
 
     const remainingUnbilledInput = document.getElementById('remaining_unbilled');
     remainingUnbilledInput.value = remainingUnbilled.toFixed(2);
@@ -423,7 +423,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Calculate on input to make it more responsive
 document.getElementById('planned_percentage').addEventListener('input', calculateVariance);
 document.getElementById('actual_percentage').addEventListener('input', calculateVariance);
-document.getElementById('variation_amount').addEventListener('input', calculateRemainingUnbilled);
+document.getElementById('project_value').addEventListener('input', calculateRemainingUnbilled);
 document.getElementById('total_billed').addEventListener('input', calculateRemainingUnbilled);
 document.getElementById('commencement_date').addEventListener('change', calculateTimeElapsedAndBalance);
 document.getElementById('completion_date').addEventListener('change', calculateTimeElapsedAndBalance);

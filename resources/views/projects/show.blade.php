@@ -166,7 +166,9 @@
                                                 <label for="assignees">Assign To</label>
                                                 <select class="form-control" id="assignees" name="assignees[]" multiple>
                                                     @foreach($users as $user)
-                                                        <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                                        @if(in_array($user->role, ['gm', 'cm', 'dm']))
+                                                            <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                                        @endif
                                                     @endforeach
                                                 </select>
                                             </div>
@@ -229,9 +231,11 @@
                                             <option value="">All Users</option>
                                             <option value="unassigned" {{ request('assigned_to') == 'unassigned' ? 'selected' : '' }}>Unassigned</option>
                                             @foreach($users as $user)
-                                                <option value="{{ $user->id }}" {{ request('assigned_to') == $user->id ? 'selected' : '' }}>
-                                                    {{ $user->name }}
-                                                </option>
+                                                @if(in_array($user->role, ['gm', 'cm', 'dm']))
+                                                    <option value="{{ $user->id }}" {{ request('assigned_to') == $user->id ? 'selected' : '' }}>
+                                                        {{ $user->name }}
+                                                    </option>
+                                                @endif
                                             @endforeach
                                         </select>
                                     </div>
@@ -459,9 +463,11 @@
                                 <td>
                                   <select class="form-control form-control-sm" data-field="assignees" data-issue-id="{{ $issue->id }}" multiple>
                                     @foreach($users as $user)
-                                      <option value="{{ $user->id }}" {{ $issue->assignees->contains($user->id) ? 'selected' : '' }}>
-                                        {{ $user->name }}
-                                      </option>
+                                      @if(in_array($user->role, ['gm', 'cm', 'dm']))
+                                        <option value="{{ $user->id }}" {{ $issue->assignees->contains($user->id) ? 'selected' : '' }}>
+                                          {{ $user->name }}
+                                        </option>
+                                      @endif
                                     @endforeach
                                   </select>
                                 </td>
@@ -626,9 +632,11 @@
                 <td>
                   <select class="form-control form-control-sm" data-field="assignees" data-issue-id="${tempId}" multiple>
                     @foreach($users as $user)
-                      <option value="{{ $user->id }}">
-                        {{ $user->name }}
-                      </option>
+                      @if(in_array($user->role, ['gm', 'cm', 'dm']))
+                        <option value="{{ $user->id }}">
+                          {{ $user->name }}
+                        </option>
+                      @endif
                     @endforeach
                   </select>
                 </td>

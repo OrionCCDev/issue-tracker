@@ -15,7 +15,7 @@
         </div>
         <div class="d-flex">
             <a href="{{ route('issues.edit', $issue->id) }}" class="btn btn-primary btn-sm mr-15">Edit Issue</a>
-            <a href="{{ route('issues.index') }}" class="btn btn-secondary btn-sm">Back to Issues</a>
+            <a href="javascript:history.back()" class="btn btn-secondary btn-sm">Back</a>
         </div>
     </div>
 

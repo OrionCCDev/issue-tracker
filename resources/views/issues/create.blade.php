@@ -18,9 +18,8 @@
                     Back to Issues
                 </a>
             @else
-                <a href="{{ route('issues.index') }}" class="btn btn-secondary btn-sm">
-                    Back to Issues
-                </a>
+            <a href="javascript:history.back()" class="btn btn-secondary btn-sm">Back</a>
+
             @endif
         </div>
     </div>

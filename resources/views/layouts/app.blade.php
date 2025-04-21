@@ -403,6 +403,11 @@
                                 </div>
                             </a>
                             <div class="dropdown-menu dropdown-menu-right" data-dropdown-in="flipInX" data-dropdown-out="flipOutX">
+                                <a class="dropdown-item" href="{{ route('profile.edit') }}">
+                                    <i class="fa fa-user me-2"></i>
+                                    <span>My Profile</span>
+                                </a>
+                                <div class="dropdown-divider"></div>
                                 <form action="{{ route('logout') }}" method="post">
                                     @csrf
                                     <button class="dropdown-item" type="submit">

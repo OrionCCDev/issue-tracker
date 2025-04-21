@@ -36,8 +36,8 @@ return new class extends Migration
             $table->integer('time_balance')->nullable();
 
             // Status Information
-            $table->date('variation_status')->nullable();
-            $table->decimal('variation_number', 15, 2)->default(0);
+            $table->string('variation_status')->nullable();
+            $table->decimal('variation_amount', 15, 2)->default(0);
             $table->string('eot_status')->nullable();
             $table->string('ncrs_status')->nullable();
 

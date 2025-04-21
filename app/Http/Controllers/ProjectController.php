@@ -60,7 +60,7 @@ class ProjectController extends Controller
 
             // Status Information
             'variation_status' => 'nullable|string|max:255',
-            'variation_number' => 'nullable|numeric',
+            'variation_amount' => 'nullable|numeric',
             'eot_status' => 'nullable|string|max:255',
             'ncrs_status' => 'nullable|string|max:255',
 
@@ -212,7 +212,7 @@ class ProjectController extends Controller
 
             // Status Information
             'variation_status' => 'nullable|string|max:255',
-            'variation_number' => 'nullable|numeric',
+            'variation_amount' => 'nullable|numeric',
             'eot_status' => 'nullable|string|max:255',
             'ncrs_status' => 'nullable|string|max:255',
 

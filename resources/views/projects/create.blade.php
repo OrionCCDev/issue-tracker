@@ -67,7 +67,7 @@
 
                                 <div class="form-group">
                                     <label for="variation_status">Variation Status</label>
-                                    <input id="variation_status" type="date" class="form-control @error('variation_status') is-invalid @enderror" name="variation_status" value="{{ old('variation_status') }}">
+                                    <input id="variation_status" type="text" class="form-control @error('variation_status') is-invalid @enderror" name="variation_status" value="{{ old('variation_status') }}">
                                     @error('variation_status')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
@@ -76,9 +76,9 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="variation_number">Variation Number</label>
-                                    <input id="variation_number" type="number" step="0.01" class="form-control @error('variation_number') is-invalid @enderror" name="variation_number" value="{{ old('variation_number', 0) }}" onchange="calculateRemainingUnbilled()" oninput="calculateRemainingUnbilled()">
-                                    @error('variation_number')
+                                    <label for="variation_amount">Variation Amount</label>
+                                    <input id="variation_amount" type="number" step="0.01" class="form-control @error('variation_amount') is-invalid @enderror" name="variation_amount" value="{{ old('variation_amount', 0) }}" onchange="calculateRemainingUnbilled()" oninput="calculateRemainingUnbilled()">
+                                    @error('variation_amount')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
                                         </span>
@@ -261,8 +261,8 @@
                                 <h5 class="mb-3 mt-4">Time Tracking</h5>
 
                                 <div class="form-group">
-                                    <label for="time_elapsed">Time Elapsed</label>
-                                    <input id="time_elapsed" type="text" class="form-control @error('time_elapsed') is-invalid @enderror" name="time_elapsed" value="{{ old('time_elapsed') }}">
+                                    <label for="time_elapsed">Time Elapsed (Days)</label>
+                                    <input id="time_elapsed" type="number" class="form-control @error('time_elapsed') is-invalid @enderror bg-light" name="time_elapsed" value="{{ old('time_elapsed', 0) }}" readonly>
                                     @error('time_elapsed')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
@@ -271,8 +271,8 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="time_balance">Time Balance</label>
-                                    <input id="time_balance" type="number" class="form-control @error('time_balance') is-invalid @enderror" name="time_balance" value="{{ old('time_balance') }}">
+                                    <label for="time_balance">Time Balance (Days)</label>
+                                    <input id="time_balance" type="number" class="form-control @error('time_balance') is-invalid @enderror bg-light" name="time_balance" value="{{ old('time_balance', 0) }}" readonly>
                                     @error('time_balance')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
@@ -355,7 +355,7 @@ h5 {
 function calculateVariance() {
     const plannedPercentage = parseFloat(document.getElementById('planned_percentage').value) || 0;
     const actualPercentage = parseFloat(document.getElementById('actual_percentage').value) || 0;
-    const variancePercentage = plannedPercentage - actualPercentage;
+    const variancePercentage = actualPercentage - plannedPercentage;
 
     const varianceInput = document.getElementById('variance_percentage');
     varianceInput.value = variancePercentage.toFixed(2);
@@ -371,9 +371,9 @@ function calculateVariance() {
 }
 
 function calculateRemainingUnbilled() {
-    const variationNumber = parseFloat(document.getElementById('variation_number').value) || 0;
+    const variationAmount = parseFloat(document.getElementById('variation_amount').value) || 0;
     const totalBilled = parseFloat(document.getElementById('total_billed').value) || 0;
-    const remainingUnbilled = variationNumber - totalBilled;
+    const remainingUnbilled = variationAmount - totalBilled;
 
     const remainingUnbilledInput = document.getElementById('remaining_unbilled');
     remainingUnbilledInput.value = remainingUnbilled.toFixed(2);
@@ -388,16 +388,44 @@ function calculateRemainingUnbilled() {
     }
 }
 
+function calculateTimeElapsedAndBalance() {
+    const commencementDate = document.getElementById('commencement_date').value;
+    const completionDate = document.getElementById('completion_date').value;
+
+    if (commencementDate && completionDate) {
+        // Calculate days between dates
+        const start = new Date(commencementDate);
+        const end = new Date(completionDate);
+        const today = new Date();
+
+        // Total project duration in days
+        const totalDays = Math.round((end - start) / (1000 * 60 * 60 * 24));
+
+        // Time elapsed so far (capped at total days)
+        let elapsedDays = Math.round((today - start) / (1000 * 60 * 60 * 24));
+        elapsedDays = Math.max(0, Math.min(elapsedDays, totalDays));
+
+        // Time balance
+        const balanceDays = totalDays - elapsedDays;
+
+        document.getElementById('time_elapsed').value = elapsedDays;
+        document.getElementById('time_balance').value = balanceDays;
+    }
+}
+
 // Calculate initial values
 document.addEventListener('DOMContentLoaded', function() {
     calculateVariance();
     calculateRemainingUnbilled();
+    calculateTimeElapsedAndBalance();
 });
 
 // Calculate on input to make it more responsive
 document.getElementById('planned_percentage').addEventListener('input', calculateVariance);
 document.getElementById('actual_percentage').addEventListener('input', calculateVariance);
-document.getElementById('variation_number').addEventListener('input', calculateRemainingUnbilled);
+document.getElementById('variation_amount').addEventListener('input', calculateRemainingUnbilled);
 document.getElementById('total_billed').addEventListener('input', calculateRemainingUnbilled);
+document.getElementById('commencement_date').addEventListener('change', calculateTimeElapsedAndBalance);
+document.getElementById('completion_date').addEventListener('change', calculateTimeElapsedAndBalance);
 </script>
 @endsection

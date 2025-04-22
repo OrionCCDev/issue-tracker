@@ -56,7 +56,6 @@
     <table class="table table-hover">
         <thead>
             <tr>
-                <th>#</th>
                 <th>Title</th>
                 <th>Status</th>
                 <th>Priority</th>
@@ -69,7 +68,6 @@
         <tbody>
             @forelse($issues as $issue)
             <tr>
-                <td>{{ $issue->id }}</td>
                 <td>
                     <a href="{{ route('issues.show', $issue->id) }}">
                         {{ $issue->title }}

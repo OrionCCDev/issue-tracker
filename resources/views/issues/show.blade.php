@@ -344,7 +344,7 @@
                 <h5 class="hk-sec-title">Quick Update</h5>
                 <div class="row">
                     <div class="col-sm">
-                        <form action="{{ route('projects.issues.update', [$project->id, $issue->id]) }}" method="POST">
+                        <form id="quick-update-form" action="{{ route('projects.issues.update', [$project->id, $issue->id]) }}" method="POST">
                             @csrf
                             @method('PUT')
                             <div class="form-group">
@@ -414,6 +414,32 @@
 @section('custom_js')
 <script>
     $(document).ready(function() {
+        // Initialize Select2 for assigned_to multi-select dropdown
+        $('#assigned_to').select2({
+            placeholder: "Select assignees",
+            allowClear: true
+        });
+
+        // Fix for Select2 multi-select form submission
+        $('#quick-update-form').on('submit', function(e) {
+            var assignedTo = $('#assigned_to').val();
+
+            // If there are selected values and they're not being properly included in the form
+            if (assignedTo && assignedTo.length) {
+                // Remove any existing hidden inputs for assigned_to to avoid duplicates
+                $(this).find('input[name="assigned_to[]"][type="hidden"]').remove();
+
+                // Add new hidden inputs for each selected value
+                assignedTo.forEach(function(userId) {
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'assigned_to[]',
+                        value: userId
+                    }).appendTo('#quick-update-form');
+                });
+            }
+        });
+
         // Title editing
         $('#edit-title-btn').click(function() {
             $('#issue-title-display').addClass('d-none');

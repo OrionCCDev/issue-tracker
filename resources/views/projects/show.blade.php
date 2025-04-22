@@ -130,12 +130,12 @@
 
                                             <div class="form-group">
                                                 <label for="title">Title</label>
-                                                <input type="text" class="form-control" id="title" name="title" required>
+                                                <textarea class="form-control" id="title" name="title" rows="2" required></textarea>
                                             </div>
 
                                             <div class="form-group">
                                                 <label for="description">Description</label>
-                                                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                                                <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
                                             </div>
 
                                             <div class="row">
@@ -364,11 +364,23 @@
                           }
 
                           .description-cell {
-                            max-width: 250px;
+                            max-width: 300px;
                           }
 
                           .description-cell textarea {
+                            min-height: 80px;
+                          }
+
+                          /* Style for title textarea */
+                          textarea[data-field="title"] {
                             min-height: 60px;
+                            resize: vertical;
+                          }
+
+                          /* Style for description textarea */
+                          textarea[data-field="description"] {
+                            min-height: 80px;
+                            resize: vertical;
                           }
 
                           .action-buttons {
@@ -408,39 +420,35 @@
                           <table class="issues-table">
                             <thead>
                               <tr>
-                                <th width="5%">ID</th>
-                                <th width="15%">Title</th>
-                                <th width="20%">Description</th>
-                                <th width="10%">Status</th>
-                                <th width="10%">Priority</th>
+                                <th width="20%">Title</th>
+                                <th width="25%">Description</th>
+                                <th width="8%">Status</th>
+                                <th width="8%">Priority</th>
                                 <th width="15%">Assignees</th>
-                                <th width="10%">Target Date</th>
-                                <th width="10%">Actual Date</th>
-                                <th width="5%">Actions</th>
+                                <th width="9%">Target Date</th>
+                                <th width="9%">Actual Date</th>
+                                <th width="6%">Actions</th>
                               </tr>
                             </thead>
                             <tbody>
                               @forelse($issues as $issue)
                               <tr class="issue-row" data-issue-id="{{ $issue->id }}">
                                 <td>
-                                  <span class="badge-issue-id">#{{ $issue->id }}</span>
+                                  <textarea
+                                         class="form-control form-control-sm"
+                                         data-field="title"
+                                         data-issue-id="{{ $issue->id }}"
+                                         placeholder="Issue Title"
+                                         rows="2">{{ $issue->title }}</textarea>
                                   @if($issue->labels)
                                     @foreach($issue->labels as $label)
                                       <span class="badge badge-info">{{ $label }}</span>
                                     @endforeach
                                   @endif
                                 </td>
-                                <td>
-                                  <input type="text"
-                                         class="form-control form-control-sm"
-                                         value="{{ $issue->title }}"
-                                         data-field="title"
-                                         data-issue-id="{{ $issue->id }}"
-                                         placeholder="Issue Title">
-                                </td>
                                 <td class="description-cell">
                                   <textarea class="form-control form-control-sm"
-                                            rows="2"
+                                            rows="3"
                                             data-field="description"
                                             data-issue-id="{{ $issue->id }}"
                                             placeholder="Issue Description">{{ $issue->description }}</textarea>
@@ -597,19 +605,17 @@
             const newRowHtml = `
               <tr class="issue-row new-issue-row" data-issue-id="${tempId}">
                 <td>
-                  <span class="badge-issue-id">NEW</span>
-                </td>
-                <td>
-                  <input type="text"
+                  <textarea
                          class="form-control form-control-sm"
-                         value=""
                          data-field="title"
                          data-issue-id="${tempId}"
-                         placeholder="Issue Title">
+                         placeholder="Issue Title"
+                         rows="2"></textarea>
+                  <span class="badge-issue-id">NEW</span>
                 </td>
                 <td class="description-cell">
                   <textarea class="form-control form-control-sm"
-                            rows="2"
+                            rows="3"
                             data-field="description"
                             data-issue-id="${tempId}"
                             placeholder="Issue Description"></textarea>
@@ -815,16 +821,18 @@
                         // Append each value separately with the same name (creates array on server side)
                         if (values.length > 0) {
                             values.forEach(value => {
-                                formData.append(`${fieldName}[]`, value);
+                                // Use assigned_to[] instead of assignees[] if this is the assignees field
+                                const fieldNameToUse = fieldName === 'assignees' ? 'assigned_to[]' : `${fieldName}[]`;
+                                formData.append(fieldNameToUse, value);
                             });
                         } else {
-                            // If nothing selected, don't send empty value
-                            // This will clear all assignees in the controller using sync([])
-                            formData.append(`${fieldName}`, '');
+                            // If nothing selected, send empty array to clear assignees
+                            const fieldNameToUse = fieldName === 'assignees' ? 'assigned_to[]' : `${fieldName}[]`;
+                            formData.append(fieldNameToUse, '');
                         }
                     } else {
                         // Handle regular fields
-                        formData.append(fieldName, field.val());
+                        formData.append(fieldName, field.val() || '');
                     }
                 });
 
@@ -902,14 +910,18 @@
                     const values = field.val() || [];
                     if (values.length > 0) {
                         values.forEach(value => {
-                            formData.append(`${fieldName}[]`, value);
+                            // Use assigned_to[] instead of assignees[] if this is the assignees field
+                            const fieldNameToUse = fieldName === 'assignees' ? 'assigned_to[]' : `${fieldName}[]`;
+                            formData.append(fieldNameToUse, value);
                         });
                     } else {
-                        formData.append(`${fieldName}`, '');
+                        // Send empty array to clear all assignees
+                        const fieldNameToUse = fieldName === 'assignees' ? 'assigned_to[]' : `${fieldName}[]`;
+                        formData.append(fieldNameToUse, '');
                     }
                 } else {
                     // Regular fields
-                    formData.append(fieldName, field.val());
+                    formData.append(fieldName, field.val() || '');
                 }
             });
 

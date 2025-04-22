@@ -83,7 +83,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="text-center">No issues found</td>
+                    <td colspan="5" class="text-center">No issues found</td>
                 </tr>
             @endforelse
         </tbody>

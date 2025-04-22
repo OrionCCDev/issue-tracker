@@ -23,7 +23,7 @@
                 <h5 class="hk-sec-title">Edit Issue Details</h5>
                 <div class="row">
                     <div class="col-sm">
-                        <form method="POST" action="{{ route('issues.update', $issue->id) }}">
+                        <form id="edit-issue-form" method="POST" action="{{ route('issues.update', $issue->id) }}">
                             @csrf
                             @method('PUT')
 
@@ -137,6 +137,26 @@
         $('#assigned_to').select2({
             placeholder: 'Select assignees',
             allowClear: true
+        });
+
+        // Fix for Select2 multi-select form submission
+        $('#edit-issue-form').on('submit', function(e) {
+            var assignedTo = $('#assigned_to').val();
+
+            // If there are selected values and they're not being properly included in the form
+            if (assignedTo && assignedTo.length) {
+                // Remove any existing hidden inputs for assigned_to to avoid duplicates
+                $(this).find('input[name="assigned_to[]"][type="hidden"]').remove();
+
+                // Add new hidden inputs for each selected value
+                assignedTo.forEach(function(userId) {
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'assigned_to[]',
+                        value: userId
+                    }).appendTo('#edit-issue-form');
+                });
+            }
         });
     });
 </script>

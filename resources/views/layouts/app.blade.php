@@ -436,6 +436,9 @@
     <!-- jQuery -->
     <script src="{{ asset('assets/vendors/jquery/dist/jquery.min.js') }}"></script>
 
+    <!-- Select2 JavaScript -->
+    <script src="{{ asset('assets/vendors/select2/dist/js/select2.min.js') }}"></script>
+
     <!-- Bootstrap Core JavaScript -->
     <script src="{{ asset('assets/vendors/popper.js/dist/umd/popper.min.js') }}"></script>
     <script src="{{ asset('assets/vendors/bootstrap/dist/js/bootstrap.min.js') }}"></script>

@@ -128,6 +128,14 @@ class IssueController extends Controller
 
     public function store(Request $request, Project $project = null)
     {
+        // Debug logging
+        \Log::info('Issue creation request data:', [
+            'all_request_data' => $request->all(),
+            'assigned_to' => $request->input('assigned_to'),
+            'is_array' => is_array($request->input('assigned_to')),
+            'count' => is_array($request->input('assigned_to')) ? count($request->input('assigned_to')) : 0
+        ]);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -237,6 +245,14 @@ class IssueController extends Controller
 
     public function storeProjectIssue(Request $request, Project $project)
     {
+        // Debug logging
+        \Log::info('Issue creation via project route:', [
+            'all_request_data' => $request->all(),
+            'assigned_to' => $request->input('assigned_to'),
+            'is_array' => is_array($request->input('assigned_to')),
+            'count' => is_array($request->input('assigned_to')) ? count($request->input('assigned_to')) : 0
+        ]);
+
         return $this->store($request, $project);
     }
 

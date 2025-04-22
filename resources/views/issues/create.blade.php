@@ -31,7 +31,7 @@
                 <h5 class="hk-sec-title">Issue Details</h5>
                 <div class="row">
                     <div class="col-sm">
-                        <form method="post" action="{{ isset($project) ? route('projects.issues.store', ['project' => $project->id]) : route('issues.store') }}">
+                        <form id="create-issue-form" method="post" action="{{ isset($project) ? route('projects.issues.store', ['project' => $project->id]) : route('issues.store') }}">
                             @csrf
 
                             @if(!isset($project))
@@ -185,6 +185,32 @@
 @section('custom_js')
 <script>
     $(document).ready(function() {
+        // Initialize Select2 for the multi-select dropdown
+        $('#assigned_to').select2({
+            placeholder: "Select assignees",
+            allowClear: true
+        });
+
+        // Fix for Select2 multi-select form submission
+        $('#create-issue-form').on('submit', function(e) {
+            var assignedTo = $('#assigned_to').val();
+
+            // If there are selected values and they're not being properly included in the form
+            if (assignedTo && assignedTo.length) {
+                // Remove any existing hidden inputs for assigned_to to avoid duplicates
+                $(this).find('input[name="assigned_to[]"][type="hidden"]').remove();
+
+                // Add new hidden inputs for each selected value
+                assignedTo.forEach(function(userId) {
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'assigned_to[]',
+                        value: userId
+                    }).appendTo('#create-issue-form');
+                });
+            }
+        });
+
         // If we're not in a specific project context, set up dynamic loading of members
         @if(!isset($project))
         $('#project_id').change(function() {
@@ -201,6 +227,12 @@
                             options += '<option value="' + value.id + '">' + value.name + (isManager ? ' (Manager)' : '') + '</option>';
                         });
                         $('#assigned_to').html(options);
+
+                        // Reinitialize Select2 after updating options
+                        $('#assigned_to').select2({
+                            placeholder: "Select assignees",
+                            allowClear: true
+                        });
                     }
                 });
             } else {

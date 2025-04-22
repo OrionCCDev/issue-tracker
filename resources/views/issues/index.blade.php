@@ -117,7 +117,6 @@
                                 <table class="table table-hover mb-0">
                                     <thead>
                                         <tr>
-                                            <th>#</th>
                                             <th>Title</th>
                                             <th>Project</th>
                                             <th>Status</th>
@@ -133,7 +132,6 @@
                                         @endphp
                                         @forelse($assignedIssues as $issue)
                                         <tr>
-                                            <td>{{ $issue->id }}</td>
                                             <td>
                                                 <a href="{{ route('issues.show', $issue->id) }}">
                                                     {{ $issue->title }}
@@ -189,7 +187,7 @@
                                         </tr>
                                         @empty
                                         <tr>
-                                            <td colspan="6" class="text-center">No issues assigned to you</td>
+                                            <td colspan="5" class="text-center">No issues assigned to you</td>
                                         </tr>
                                         @endforelse
                                     </tbody>
@@ -204,7 +202,6 @@
                                 <table class="table table-hover mb-0">
                                     <thead>
                                         <tr>
-                                            <th>#</th>
                                             <th>Title</th>
                                             <th>Project</th>
                                             <th>Status</th>
@@ -220,7 +217,6 @@
                                         @endphp
                                         @forelse($projectIssues as $issue)
                                         <tr>
-                                            <td>{{ $issue->id }}</td>
                                             <td>
                                                 <a href="{{ route('issues.show', $issue->id) }}">
                                                     {{ $issue->title }}
@@ -276,7 +272,7 @@
                                         </tr>
                                         @empty
                                         <tr>
-                                            <td colspan="6" class="text-center">No other project issues found</td>
+                                            <td colspan="5" class="text-center">No other project issues found</td>
                                         </tr>
                                         @endforelse
                                     </tbody>
@@ -291,7 +287,6 @@
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
-                                    <th>#</th>
                                     <th>Title</th>
                                     <th>Project</th>
                                     <th>Status</th>
@@ -305,7 +300,6 @@
                             <tbody>
                                 @forelse($issues as $issue)
                                 <tr>
-                                    <td>{{ $issue->id }}</td>
                                     <td>
                                         <a href="{{ route('issues.show', $issue->id) }}">
                                             {{ $issue->title }}
@@ -399,7 +393,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="9" class="text-center">No issues found</td>
+                                    <td colspan="5" class="text-center">No issues found</td>
                                 </tr>
                                 @endforelse
                             </tbody>

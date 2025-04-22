@@ -102,7 +102,6 @@
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
-                                    <th>#</th>
                                     <th>Title</th>
                                     <th>Project</th>
                                     <th>Status</th>
@@ -114,7 +113,6 @@
                             <tbody>
                                 @forelse($myIssues as $issue)
                                 <tr>
-                                    <td>{{ $issue->id }}</td>
                                     <td>
                                         <a href="{{ route('projects.issues.show', [$issue->project_id, $issue->id]) }}">
                                             {{ $issue->title }}
@@ -180,7 +178,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="7" class="text-center">No issues found in your projects</td>
+                                    <td colspan="6" class="text-center">No issues found in your projects</td>
                                 </tr>
                                 @endforelse
                             </tbody>

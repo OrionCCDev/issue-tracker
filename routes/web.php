@@ -68,6 +68,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
     Route::put('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
 
+    // API route for getting project members
+    Route::get('/api/projects/{project}/members', [ProjectController::class, 'getProjectMembers']);
+
     Route::get('projects/{project}/members', [ProjectController::class, 'members'])->name('projects.members');
     Route::post('projects/{project}/members', [ProjectController::class, 'addMember'])->name('projects.members.add');
     Route::delete('projects/{project}/members/{user}', [ProjectController::class, 'removeMember'])->name('projects.members.remove');

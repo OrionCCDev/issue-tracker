@@ -107,6 +107,7 @@ class IssueController extends Controller
 
     public function createProjectIssue(Project $project)
     {
+        $project->load('manager');
         $members = User::all();
         return view('issues.create', compact('project', 'members'));
     }
@@ -117,7 +118,7 @@ class IssueController extends Controller
 
         // Check if project_id is provided as a query parameter
         if ($request->has('project')) {
-            $project = Project::findOrFail($request->project);
+            $project = Project::with('manager')->findOrFail($request->project);
         }
 
         $members = User::all();
@@ -271,6 +272,7 @@ class IssueController extends Controller
     public function edit(Issue $issue)
     {
         $users = User::all();
+        $issue->load('project.manager');
         return view('issues.edit', compact('issue', 'users'));
     }
 

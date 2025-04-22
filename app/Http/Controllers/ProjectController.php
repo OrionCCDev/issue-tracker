@@ -445,5 +445,21 @@ class ProjectController extends Controller
 
         return view('projects.issues-cards', compact('project', 'issues', 'users'));
     }
+
+    /**
+     * API endpoint to get project members with flag for manager
+     */
+    public function getProjectMembers(Project $project)
+    {
+        $members = $project->members;
+        $project->load('manager');
+
+        $membersWithManagerFlag = $members->map(function($member) use ($project) {
+            $member->is_manager = ($member->id === $project->manager_id);
+            return $member;
+        });
+
+        return response()->json($membersWithManagerFlag);
+    }
 }
 

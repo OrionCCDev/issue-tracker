@@ -463,9 +463,9 @@
                                 <td>
                                   <select class="form-control form-control-sm" data-field="assignees" data-issue-id="{{ $issue->id }}" multiple>
                                     @foreach($users as $user)
-                                      @if(in_array($user->role, ['gm', 'cm', 'dm']))
+                                      @if(in_array($user->role, ['gm', 'cm', 'dm']) || $user->id == $project->manager_id)
                                         <option value="{{ $user->id }}" {{ $issue->assignees->contains($user->id) ? 'selected' : '' }}>
-                                          {{ $user->name }}
+                                          {{ $user->name }}{{ $user->id == $project->manager_id ? ' (Manager)' : '' }}
                                         </option>
                                       @endif
                                     @endforeach
@@ -632,9 +632,9 @@
                 <td>
                   <select class="form-control form-control-sm" data-field="assignees" data-issue-id="${tempId}" multiple>
                     @foreach($users as $user)
-                      @if(in_array($user->role, ['gm', 'cm', 'dm']))
+                      @if(in_array($user->role, ['gm', 'cm', 'dm']) || $user->id == $project->manager_id)
                         <option value="{{ $user->id }}">
-                          {{ $user->name }}
+                          {{ $user->name }}{{ $user->id == $project->manager_id ? ' (Manager)' : '' }}
                         </option>
                       @endif
                     @endforeach

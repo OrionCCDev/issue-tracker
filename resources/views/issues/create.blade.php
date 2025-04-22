@@ -113,7 +113,7 @@
                                     class="form-control @error('assigned_to') is-invalid @enderror" multiple>
                                     @foreach($members as $member)
                                         <option value="{{ $member->id }}" {{ in_array($member->id, old('assigned_to', [])) ? 'selected' : '' }}>
-                                            {{ $member->name }}
+                                            {{ $member->name }}{{ isset($project) && $project->manager_id == $member->id ? ' (Manager)' : '' }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -197,7 +197,8 @@
                     success: function(data) {
                         var options = '<option value="">Unassigned</option>';
                         $.each(data, function(key, value) {
-                            options += '<option value="' + value.id + '">' + value.name + '</option>';
+                            var isManager = value.is_manager || false;
+                            options += '<option value="' + value.id + '">' + value.name + (isManager ? ' (Manager)' : '') + '</option>';
                         });
                         $('#assigned_to').html(options);
                     }

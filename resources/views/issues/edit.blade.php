@@ -89,7 +89,7 @@
                                             @foreach($users as $user)
                                                 <option value="{{ $user->id }}"
                                                     {{ in_array($user->id, old('assigned_to', $issue->assignees->pluck('id')->toArray())) ? 'selected' : '' }}>
-                                                    {{ $user->name }}
+                                                    {{ $user->name }}{{ $user->id == $issue->project->manager_id ? ' (Manager)' : '' }}
                                                 </option>
                                             @endforeach
                                         </select>

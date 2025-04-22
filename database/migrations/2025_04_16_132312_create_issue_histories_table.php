@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('issue_id')->constrained()->onDelete('cascade');
             $table->foreignId('updated_by')->constrained('users');
             $table->string('title');
-            $table->text('description');
+            $table->text('description')->nullable();
             $table->enum('priority', ['low', 'medium', 'high', 'critical']);
             $table->enum('status', ['open', 'in_progress', 'review', 'resolved', 'closed']);
             $table->date('target_resolution_date')->nullable();

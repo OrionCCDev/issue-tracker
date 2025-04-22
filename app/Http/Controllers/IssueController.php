@@ -129,7 +129,7 @@ class IssueController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'description' => 'required|string',
+            'description' => 'nullable|string',
             'project_id' => $project ? 'nullable' : 'required|exists:projects,id',
             'status' => 'required|in:open,in_progress,review,resolved,closed',
             'priority' => 'required|in:low,medium,high,critical',
@@ -278,7 +278,7 @@ class IssueController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'description' => 'required|string',
+            'description' => 'nullable|string',
             'status' => 'required|in:open,in_progress,review,resolved,closed',
             'priority' => 'required|in:low,medium,high,critical',
             'assigned_to' => 'nullable|array',

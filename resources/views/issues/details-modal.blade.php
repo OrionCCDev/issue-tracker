@@ -77,7 +77,7 @@
                 <!-- Description -->
                 <div class="form-group mt-3">
                     <label for="description">Description</label>
-                    <textarea class="form-control" id="description" name="description" rows="5" required>{{ $issue->description }}</textarea>
+                    <textarea class="form-control" id="description" name="description" rows="5">{{ $issue->description }}</textarea>
                 </div>
 
                 <!-- Notes -->

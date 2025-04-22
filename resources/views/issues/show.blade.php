@@ -91,7 +91,9 @@
                                 <div class="issue-description mb-25">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <h6>Description</h6>
-
+                                        <button id="edit-description-btn" class="btn btn-sm btn-outline-primary">
+                                            <i class="fa fa-pencil"></i> Edit
+                                        </button>
                                     </div>
                                     <div id="description-display" class="card bg-light">
                                         <div class="card-body">
@@ -102,7 +104,7 @@
                                         @csrf
                                         @method('PUT')
                                         <div class="form-group">
-                                            <textarea class="form-control" id="description-input" name="description" rows="5" required>{{ $issue->description }}</textarea>
+                                            <textarea class="form-control" id="description-input" name="description" rows="5">{{ $issue->description }}</textarea>
                                         </div>
                                         <div class="form-group">
                                             <button type="submit" class="btn btn-primary btn-sm">Save</button>
@@ -142,7 +144,7 @@
                                     @csrf
                                     <div class="form-group">
                                         <label for="content">Add Your Comment</label>
-                                        <textarea class="form-control" id="content" name="description" rows="3" required></textarea>
+                                        <textarea class="form-control" id="content" name="description" rows="3"></textarea>
                                     </div>
                                     <button type="submit" class="btn btn-primary">Post Comment</button>
                                 </form>
@@ -357,13 +359,20 @@
                             </div>
                             <div class="form-group">
                                 <label for="assigned_to">Assigned To</label>
-                                <select class="form-control" id="assigned_to" name="assigned_to">
+                                <select class="form-control" id="assigned_to" name="assigned_to[]" multiple>
                                     <option value="">Unassigned</option>
                                     @foreach($project->members as $member)
-                                        <option value="{{ $member->id }}" {{ $issue->assigned_to == $member->id ? 'selected' : '' }}>
+                                        <option value="{{ $member->id }}"
+                                            {{ $issue->assignees->contains($member->id) ? 'selected' : '' }}>
                                             {{ $member->name }}
                                         </option>
                                     @endforeach
+                                    @if($project->manager && !$project->members->contains($project->manager->id))
+                                        <option value="{{ $project->manager->id }}"
+                                            {{ $issue->assignees->contains($project->manager->id) ? 'selected' : '' }}>
+                                            {{ $project->manager->name }} (Manager)
+                                        </option>
+                                    @endif
                                 </select>
                             </div>
                             <div class="form-group">

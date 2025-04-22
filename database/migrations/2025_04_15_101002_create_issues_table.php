@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('issues', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->text('description');
+            $table->text('description')->nullable();
             $table->enum('priority', ['low', 'medium', 'high', 'critical'])->default('medium');
             $table->enum('status', ['open', 'in_progress', 'review', 'resolved', 'closed'])->default('open');
             $table->foreignId('project_id')->constrained()->onDelete('cascade');

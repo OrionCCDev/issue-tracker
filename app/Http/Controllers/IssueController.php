@@ -263,7 +263,7 @@ class IssueController extends Controller
             $issue->update(['is_read' => true]);
         }
 
-        $issue->load(['comments.user', 'creator', 'assignees', 'project']);
+        $issue->load(['comments.user', 'creator', 'assignees', 'project.manager']);
 
         return view('issues.show', compact('issue', 'project'));
     }

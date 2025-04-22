@@ -367,11 +367,25 @@
                                             {{ $member->name }}
                                         </option>
                                     @endforeach
-                                    @if($project->manager && !$project->members->contains($project->manager->id))
-                                        <option value="{{ $project->manager->id }}"
-                                            {{ $issue->assignees->contains($project->manager->id) ? 'selected' : '' }}>
-                                            {{ $project->manager->name }} (Manager)
-                                        </option>
+                                    @if($project->manager)
+                                        @php
+                                            $isAlreadyInMembers = $project->members->contains($project->manager->id);
+                                        @endphp
+                                        @if(!$isAlreadyInMembers)
+                                            <option value="{{ $project->manager->id }}"
+                                                {{ $issue->assignees->contains($project->manager->id) ? 'selected' : '' }}>
+                                                {{ $project->manager->name }} (Manager)
+                                            </option>
+                                        @else
+                                            <!-- Update the existing entry to indicate this is the manager -->
+                                            <script>
+                                                $(document).ready(function() {
+                                                    $('#assigned_to option[value="{{ $project->manager->id }}"]').text(
+                                                        $('#assigned_to option[value="{{ $project->manager->id }}"]').text() + ' (Manager)'
+                                                    );
+                                                });
+                                            </script>
+                                        @endif
                                     @endif
                                 </select>
                             </div>

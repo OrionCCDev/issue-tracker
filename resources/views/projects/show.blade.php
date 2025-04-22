@@ -130,12 +130,12 @@
 
                                             <div class="form-group">
                                                 <label for="title">Title</label>
-                                                <textarea class="form-control" id="title" name="title" rows="2" required></textarea>
+                                                <textarea class="form-control" id="title" name="title" rows="4" required></textarea>
                                             </div>
 
                                             <div class="form-group">
                                                 <label for="description">Description</label>
-                                                <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                                                <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
                                             </div>
 
                                             <div class="row">
@@ -439,7 +439,7 @@
                                          data-field="title"
                                          data-issue-id="{{ $issue->id }}"
                                          placeholder="Issue Title"
-                                         rows="2">{{ $issue->title }}</textarea>
+                                         rows="4">{{ $issue->title }}</textarea>
                                   @if($issue->labels)
                                     @foreach($issue->labels as $label)
                                       <span class="badge badge-info">{{ $label }}</span>
@@ -448,7 +448,7 @@
                                 </td>
                                 <td class="description-cell">
                                   <textarea class="form-control form-control-sm"
-                                            rows="3"
+                                            rows="4"
                                             data-field="description"
                                             data-issue-id="{{ $issue->id }}"
                                             placeholder="Issue Description">{{ $issue->description }}</textarea>
@@ -610,12 +610,12 @@
                          data-field="title"
                          data-issue-id="${tempId}"
                          placeholder="Issue Title"
-                         rows="2"></textarea>
+                         rows="4"></textarea>
                   <span class="badge-issue-id">NEW</span>
                 </td>
                 <td class="description-cell">
                   <textarea class="form-control form-control-sm"
-                            rows="3"
+                            rows="4"
                             data-field="description"
                             data-issue-id="${tempId}"
                             placeholder="Issue Description"></textarea>

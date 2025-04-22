@@ -98,7 +98,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/issues/my-issues', [IssueController::class, 'myIssues'])->name('issues.my-issues');
     Route::get('/issues/mark-all-read', [IssueController::class, 'markAllRead'])->name('issues.markAllRead');
     Route::get('/issues/create', [IssueController::class, 'create'])->name('issues.create');
-    Route::get('/issues', [IssueController::class, 'index'])->name('issues.index');
+
+    // Issues Routes (Admin and CM only)
+    Route::middleware('role:o-admin|cm')->group(function () {
+        Route::get('/issues', [IssueController::class, 'index'])->name('issues.index');
+    });
+
     Route::post('/issues', [IssueController::class, 'store'])->name('issues.store');
     Route::get('/issues/{issue}', [IssueController::class, 'show'])->name('issues.show');
     Route::get('/issues/{issue}/edit', [IssueController::class, 'edit'])->name('issues.edit');

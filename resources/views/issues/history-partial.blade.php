@@ -53,9 +53,27 @@
                                             <div class="change-item">
                                                 <strong>{{ ucfirst(str_replace('_', ' ', $field)) }}:</strong>
                                                 <span class="text-muted">from</span>
-                                                <span class="text-danger">{{ $change['from'] ?? 'empty' }}</span>
-                                                <span class="text-muted">to</span>
-                                                <span class="text-success">{{ $change['to'] ?? 'empty' }}</span>
+                                                @if(in_array($field, ['target_resolution_date', 'actual_resolution_date']))
+                                                    <span class="text-danger">
+                                                        @if(isset($change['old']) && !empty($change['old']))
+                                                            {{ \Carbon\Carbon::parse($change['old'])->format('Y-m-d') }}
+                                                        @else
+                                                            not set
+                                                        @endif
+                                                    </span>
+                                                    <span class="text-muted">to</span>
+                                                    <span class="text-success">
+                                                        @if(isset($change['new']) && !empty($change['new']))
+                                                            {{ \Carbon\Carbon::parse($change['new'])->format('Y-m-d') }}
+                                                        @else
+                                                            not set
+                                                        @endif
+                                                    </span>
+                                                @else
+                                                    <span class="text-danger">{{ isset($change['old']) && !empty($change['old']) ? $change['old'] : 'not set' }}</span>
+                                                    <span class="text-muted">to</span>
+                                                    <span class="text-success">{{ isset($change['new']) && !empty($change['new']) ? $change['new'] : 'not set' }}</span>
+                                                @endif
                                             </div>
                                         @endforeach
                                     @endif

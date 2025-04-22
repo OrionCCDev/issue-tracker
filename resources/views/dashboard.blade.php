@@ -136,6 +136,77 @@
 
     <!-- Row -->
     <div class="row">
+        <div class="col-xl-12">
+            <section class="hk-sec-wrapper">
+                <div class="row mb-15">
+                    <div class="col-sm-6">
+                        @if(in_array(Auth::user()->role, ['o-admin', 'cm', 'gm']))
+                            <h5 class="hk-sec-title">All Projects</h5>
+                        @else
+                            <h5 class="hk-sec-title">My Projects</h5>
+                        @endif
+                    </div>
+                    <div class="col-sm-6 text-right">
+                        <a href="{{ route('issues.my-issues') }}" class="btn btn-sm btn-outline-primary">
+                            View All My Project Issues
+                        </a>
+                    </div>
+                </div>
+                <div class="row">
+                    @forelse($myProjects as $project)
+                        <div class="col-xl-4 col-md-6 mb-20">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <a href="{{ route('projects.show', $project->id) }}">{{ $project->name }}</a>
+                                        <span class="badge badge-soft-primary ml-10">{{ $project->code }}</span>
+                                    </h5>
+                                    <p class="card-text">
+                                        {{ \Illuminate\Support\Str::limit($project->description, 100) }}
+                                    </p>
+                                    <div class="d-flex justify-content-between mt-15">
+                                        <div>
+                                            <span class="text-muted">All Issues: </span>
+                                            <span class="badge badge-primary">{{ $project->issues->count() }}</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-muted">Resolved: </span>
+                                            <span class="badge badge-success">{{ $project->issues->whereIn('status', ['resolved', 'closed'])->count() }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="progress progress-sm mt-10">
+                                        @php
+                                            $total = $project->issues->count();
+                                            $completed = $project->issues->whereIn('status', ['resolved', 'closed'])->count();
+                                            $percentage = $total > 0 ? round(($completed / $total) * 100) : 0;
+                                        @endphp
+                                        <div class="progress-bar bg-success" style="width: {{ $percentage }}%"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mt-10">
+                                        <small class="text-muted">{{ $percentage }}% complete</small>
+                                        <div>
+                                            <a href="{{ route('projects.show', $project->id) }}" class="btn btn-xs btn-primary">View</a>
+                                            <a href="{{ route('projects.issues.create', $project->id) }}" class="btn btn-xs btn-info">Add Issue</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="col-12">
+                            <div class="alert alert-light">
+                                You are not assigned to any projects yet.
+                            </div>
+                        </div>
+                    @endforelse
+                </div>
+            </section>
+        </div>
+    </div>
+    <!-- /Row -->
+
+    <!-- Row -->
+    <div class="row">
         <div class="col-12">
             <section class="hk-sec-wrapper">
                 <div class="row mb-15">
@@ -380,76 +451,7 @@
     </div>
     <!-- /Row -->
 
-    <!-- Row -->
-    <div class="row">
-        <div class="col-xl-12">
-            <section class="hk-sec-wrapper">
-                <div class="row mb-15">
-                    <div class="col-sm-6">
-                        @if(in_array(Auth::user()->role, ['o-admin', 'cm', 'gm']))
-                            <h5 class="hk-sec-title">All Projects</h5>
-                        @else
-                            <h5 class="hk-sec-title">My Projects</h5>
-                        @endif
-                    </div>
-                    <div class="col-sm-6 text-right">
-                        <a href="{{ route('issues.my-issues') }}" class="btn btn-sm btn-outline-primary">
-                            View All My Project Issues
-                        </a>
-                    </div>
-                </div>
-                <div class="row">
-                    @forelse($myProjects as $project)
-                        <div class="col-xl-4 col-md-6 mb-20">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">
-                                        <a href="{{ route('projects.show', $project->id) }}">{{ $project->name }}</a>
-                                        <span class="badge badge-soft-primary ml-10">{{ $project->code }}</span>
-                                    </h5>
-                                    <p class="card-text">
-                                        {{ \Illuminate\Support\Str::limit($project->description, 100) }}
-                                    </p>
-                                    <div class="d-flex justify-content-between mt-15">
-                                        <div>
-                                            <span class="text-muted">All Issues: </span>
-                                            <span class="badge badge-primary">{{ $project->issues->count() }}</span>
-                                        </div>
-                                        <div>
-                                            <span class="text-muted">Resolved: </span>
-                                            <span class="badge badge-success">{{ $project->issues->whereIn('status', ['resolved', 'closed'])->count() }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="progress progress-sm mt-10">
-                                        @php
-                                            $total = $project->issues->count();
-                                            $completed = $project->issues->whereIn('status', ['resolved', 'closed'])->count();
-                                            $percentage = $total > 0 ? round(($completed / $total) * 100) : 0;
-                                        @endphp
-                                        <div class="progress-bar bg-success" style="width: {{ $percentage }}%"></div>
-                                    </div>
-                                    <div class="d-flex justify-content-between mt-10">
-                                        <small class="text-muted">{{ $percentage }}% complete</small>
-                                        <div>
-                                            <a href="{{ route('projects.show', $project->id) }}" class="btn btn-xs btn-primary">View</a>
-                                            <a href="{{ route('projects.issues.create', $project->id) }}" class="btn btn-xs btn-info">Add Issue</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @empty
-                        <div class="col-12">
-                            <div class="alert alert-light">
-                                You are not assigned to any projects yet.
-                            </div>
-                        </div>
-                    @endforelse
-                </div>
-            </section>
-        </div>
-    </div>
-    <!-- /Row -->
+
 </div>
 <!-- /   container-fluid-fluid-fluid -->
 

@@ -312,6 +312,7 @@
                                 <span class="nav-link-text">Projects</span>
                             </a>
                         </li>
+                        @if(Auth::user()->role === 'cm' || Auth::user()->role === 'o-admin')
                         <li class="nav-item {{ Request::is('issues*') ? 'active' : '' }}">
                             <a class="nav-link d-flex align-items-center" href="{{ route('issues.my-issues') }}" style="padding: 0.5rem 1rem;">
                                 <i class="fa fa-bug fa-lg me-2 mr-2"></i>
@@ -324,6 +325,7 @@
                                 <span class="nav-link-text">Users</span>
                             </a>
                         </li>
+                        @endif
                     </ul>
 
                     <ul class="navbar-nav ms-auto align-items-center" style="gap: 1rem;">

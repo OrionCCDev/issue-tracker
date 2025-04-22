@@ -294,10 +294,37 @@ class IssueController extends Controller
         // Track changes for history
         $changes = [];
         foreach ($validated as $key => $value) {
-            if ($key !== 'assigned_to' && $issue->{$key} != $value) {
+            // Skip assignees as they're handled separately
+            if ($key === 'assigned_to') {
+                continue;
+            }
+
+            // Special handling for date fields
+            if (in_array($key, ['target_resolution_date', 'actual_resolution_date'])) {
+                $oldValue = $issue->{$key};
+
+                // Standardize empty values for comparison
+                if (empty($oldValue) && empty($value)) {
+                    // Both are empty, no change
+                    continue;
+                }
+
+                // Format dates for comparison if they exist
+                $oldFormatted = !empty($oldValue) ? ($oldValue instanceof \Carbon\Carbon ? $oldValue->format('Y-m-d') : date('Y-m-d', strtotime($oldValue))) : null;
+                $newFormatted = !empty($value) ? date('Y-m-d', strtotime($value)) : null;
+
+                if ($oldFormatted !== $newFormatted) {
+                    $changes[$key] = [
+                        'old' => $oldFormatted,
+                        'new' => $newFormatted
+                    ];
+                }
+            }
+            // Regular field comparison
+            else if ($issue->{$key} != $value) {
                 $changes[$key] = [
-                    'from' => $issue->{$key},
-                    'to' => $value
+                    'old' => $issue->{$key},
+                    'new' => $value
                 ];
             }
         }
@@ -472,7 +499,29 @@ class IssueController extends Controller
             $changedFields = [];
 
             foreach ($data as $key => $value) {
-                if (array_key_exists($key, $oldData) && $oldData[$key] != $value) {
+                // Special handling for date fields
+                if (in_array($key, ['target_resolution_date', 'actual_resolution_date'])) {
+                    $oldValue = $oldData[$key];
+
+                    // Standardize empty values for comparison
+                    if (empty($oldValue) && empty($value)) {
+                        // Both are empty, no change
+                        continue;
+                    }
+
+                    // Format dates for comparison if they exist
+                    $oldFormatted = !empty($oldValue) ? date('Y-m-d', strtotime($oldValue)) : null;
+                    $newFormatted = !empty($value) ? date('Y-m-d', strtotime($value)) : null;
+
+                    if ($oldFormatted !== $newFormatted) {
+                        $changedFields[$key] = [
+                            'old' => $oldFormatted,
+                            'new' => $newFormatted
+                        ];
+                    }
+                }
+                // Regular field comparison
+                else if (array_key_exists($key, $oldData) && $oldData[$key] != $value) {
                     $changedFields[$key] = [
                         'old' => $oldData[$key],
                         'new' => $value

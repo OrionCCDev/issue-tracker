@@ -564,8 +564,23 @@
 @include('components.issue-detail-modal')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ asset('js/app.js') }}"></script>
 <script>
+    // Add custom SweetAlert2 toast configuration
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+        },
+        width: '300px'
+    });
+
     console.log('About to initialize charts');
     // Debug data from controller
     console.log('Project data:', {
@@ -863,7 +878,10 @@
                             if (typeof toastr !== 'undefined') {
                                 toastr.success('Changes saved successfully!');
                             } else {
-                                alert('Changes saved successfully!');
+                                Toast.fire({
+                                    icon: 'success',
+                                    title: 'Changes saved successfully!'
+                                });
                             }
                         } else {
                             throw new Error(response.message || 'Failed to save changes');
@@ -877,7 +895,10 @@
                         if (typeof toastr !== 'undefined') {
                             toastr.error(errorMessage);
                         } else {
-                            alert(errorMessage);
+                            Toast.fire({
+                                icon: 'error',
+                                title: errorMessage
+                            });
                         }
                     }
                 });
@@ -946,7 +967,10 @@
                     if (typeof toastr !== 'undefined') {
                         toastr.success('Issue created successfully!');
                     } else {
-                        alert('Issue created successfully!');
+                        Toast.fire({
+                            icon: 'success',
+                            title: 'Issue created successfully!'
+                        });
                     }
 
                     // Remove the temporary row
@@ -974,9 +998,12 @@
                         },
                         error: function() {
                             if (typeof toastr !== 'undefined') {
-                                toastr.error('Failed to refresh issues list, but issue was created.');
+                                toastr.error('Failed to refresh issues list');
                             } else {
-                                alert('Failed to refresh issues list, but issue was created.');
+                                Toast.fire({
+                                    icon: 'error',
+                                    title: 'Failed to refresh issues list'
+                                });
                             }
                         }
                     });
@@ -995,7 +1022,10 @@
                     if (typeof toastr !== 'undefined') {
                         toastr.error(errorMessage);
                     } else {
-                        alert(errorMessage);
+                        Toast.fire({
+                            icon: 'error',
+                            title: errorMessage
+                        });
                     }
 
                     // Handle validation errors
@@ -1060,7 +1090,10 @@
                         if (typeof toastr !== 'undefined') {
                             toastr.success('Issue created successfully');
                         } else {
-                            alert('Issue created successfully');
+                            Toast.fire({
+                                icon: 'success',
+                                title: 'Issue created successfully'
+                            });
                         }
 
                         // Refresh issues list
@@ -1086,6 +1119,11 @@
                             error: function() {
                                 if (typeof toastr !== 'undefined') {
                                     toastr.error('Failed to refresh issues list');
+                                } else {
+                                    Toast.fire({
+                                        icon: 'error',
+                                        title: 'Failed to refresh issues list'
+                                    });
                                 }
                             }
                         });
@@ -1100,7 +1138,10 @@
                     if (typeof toastr !== 'undefined') {
                         toastr.error(xhr.responseJSON?.message || 'Error creating issue');
                     } else {
-                        alert(xhr.responseJSON?.message || 'Error creating issue');
+                        Toast.fire({
+                            icon: 'error',
+                            title: xhr.responseJSON?.message || 'Error creating issue'
+                        });
                     }
 
                     // Handle validation errors
@@ -1144,7 +1185,10 @@
                 if (typeof toastr !== 'undefined') {
                     toastr.error('Failed to load comments');
                 } else {
-                    alert('Failed to load comments');
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'Failed to load comments'
+                    });
                 }
             }
         });
@@ -1162,7 +1206,10 @@
                 if (typeof toastr !== 'undefined') {
                     toastr.error('Failed to load history');
                 } else {
-                    alert('Failed to load history');
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'Failed to load history'
+                    });
                 }
             }
         });

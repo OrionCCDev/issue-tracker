@@ -9,7 +9,7 @@ $(function() {
 	}, function(start, end, label) {
 		console.log("A new date selection was made: " + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
 	});
-	
+
 	/* Date range picker with times*/
 	$('input[name="datetimes"]').daterangepicker({
 		timePicker: true,
@@ -20,7 +20,7 @@ $(function() {
 		  format: 'M/DD hh:mm A'
 		}
 	});
-	
+
 	/* Single table*/
 	$('input[name="birthday"]').daterangepicker({
 		singleDatePicker: true,
@@ -32,7 +32,7 @@ $(function() {
 		var years = moment().diff(start, 'years');
 		alert("You are " + years + " years old!");
 	});
-	
+
 	/* Limit selectable dates*/
 	$('.input-limit-datepicker').daterangepicker({
 		format: 'MM/DD/YYYY',
@@ -44,7 +44,7 @@ $(function() {
 			days: 6
 		}
 	});
-	
+
 	/* Predefind range*/
 	var start = moment().subtract(29, 'days');
     var end = moment();
@@ -52,7 +52,7 @@ $(function() {
     function cb(start, end) {
         $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
     }
-	
+
     $('#reportrange').daterangepicker({
         startDate: start,
         endDate: end,
@@ -67,7 +67,7 @@ $(function() {
     },cb);
 
     cb(start, end);
-	
+
 	/* Time picker*/
 	$('.input-timepicker').daterangepicker({
 		timePicker: true,

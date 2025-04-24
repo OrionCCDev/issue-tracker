@@ -2,7 +2,7 @@
 
 window.onload = function () {
   'use strict';
-	
+
   var Cropper = window.Cropper;
   var container = document.querySelector('.img-container');
   var image = container.getElementsByTagName('img').item(0);

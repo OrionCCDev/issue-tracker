@@ -146,11 +146,11 @@
                             <h5 class="hk-sec-title">My Projects</h5>
                         @endif
                     </div>
-                    <div class="col-sm-6 text-right">
+                    {{--  <div class="col-sm-6 text-right">
                         <a href="{{ route('issues.my-issues') }}" class="btn btn-sm btn-outline-primary">
                             View All My Project Issues
                         </a>
-                    </div>
+                    </div>  --}}
                 </div>
                 <div class="row">
                     @forelse($myProjects as $project)
@@ -293,12 +293,15 @@
                                 </table>
                             </div>
                         </div>
+                        <div class="mt-3">
+                            {{ $myAssignedIssues->links() }}
+                        </div>
                     </div>
                 </div>
             </section>
         </div>
 
-        <div class="col-12">
+        {{--  <div class="col-12">
             <section class="hk-sec-wrapper">
                 <div class="row mb-15">
                     <div class="col-sm-6">
@@ -394,7 +397,7 @@
                     </div>
                 </div>
             </section>
-        </div>
+        </div>  --}}
     </div>
     <!-- /Row -->
 

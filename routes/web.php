@@ -102,8 +102,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/issues/mark-all-read', [IssueController::class, 'markAllRead'])->name('issues.markAllRead');
     Route::get('/issues/create', [IssueController::class, 'create'])->name('issues.create');
 
-    // Issues Routes (Admin and CM only)
-    Route::middleware('role:o-admin|cm')->group(function () {
+    // Issues Routes (Admin, CM and PM only)
+    Route::middleware('role:o-admin|cm|pm')->group(function () {
         Route::get('/issues', [IssueController::class, 'index'])->name('issues.index');
     });
 

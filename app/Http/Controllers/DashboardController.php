@@ -64,8 +64,7 @@ class DashboardController extends Controller
                 })
                 ->with('project')
                 ->latest()
-                ->take(5)
-                ->get();
+                ->paginate(10);
 
         } else {
             // Limited access for PM role - only see their projects and related issues
@@ -128,8 +127,7 @@ class DashboardController extends Controller
                 })
                 ->with('project')
                 ->latest()
-                ->take(5)
-                ->get();
+                ->paginate(10);
         }
 
         // Get recent activities (filtered for PM role)

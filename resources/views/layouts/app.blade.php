@@ -32,8 +32,8 @@
     </script>
 
     <!-- Favicon -->
-    <link rel="shortcut icon" href="{{ asset('assets/imgs/favicon.png') }}">
-    <link rel="icon" href="{{ asset('assets/imgs/favicon.png') }}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ asset('assets/imgs/logo-blue.webp') }}">
+    <link rel="icon" href="{{ asset('assets/imgs/logo-blue.webp') }}" type="image/x-icon">
 
     <!-- vector map CSS -->
     <link href="{{ asset('assets/vendors/vectormap/jquery-jvectormap-2.0.3.css') }}" rel="stylesheet" type="text/css" />

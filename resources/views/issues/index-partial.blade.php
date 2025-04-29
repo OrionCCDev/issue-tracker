@@ -117,7 +117,7 @@
                         <div class="media align-items-center">
                             <div class="media-img-wrap d-flex mr-10">
                                 <div class="avatar avatar-xs">
-                                    <img src="{{ asset('assets/images/users/' . $issue->assignees->first()->image_path) }}"
+                                    <img src="{{ asset('storage/' . $issue->assignees->first()->image_path) }}"
                                         alt="user" class="avatar-img rounded-circle">
                                 </div>
                             </div>

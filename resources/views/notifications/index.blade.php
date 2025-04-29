@@ -68,7 +68,7 @@
                                             <div class="d-flex">
                                                 @if(isset($notification->data['url']))
                                                     <a href="{{ $notification->data['url'] }}" class="btn btn-primary btn-sm mr-10">
-                                                        <i class="fas fa-eye"></i> View
+                                                        <i class="fa fa-eye"></i> View
                                                     </a>
                                                 @endif
 
@@ -76,14 +76,14 @@
                                                     <form action="{{ route('notifications.mark-as-unread', $notification->id) }}" method="POST">
                                                         @csrf
                                                         <button type="submit" class="btn btn-outline-secondary btn-sm">
-                                                            <i class="fas fa-envelope"></i>
+                                                            <i class="fa fa-envelope"></i>
                                                         </button>
                                                     </form>
                                                 @else
                                                     <form action="{{ route('notifications.mark-as-read', $notification->id) }}" method="POST">
                                                         @csrf
                                                         <button type="submit" class="btn btn-outline-success btn-sm">
-                                                            <i class="fas fa-envelope-open"></i>
+                                                            <i class="fa fa-envelope-open"></i>
                                                         </button>
                                                     </form>
                                                 @endif

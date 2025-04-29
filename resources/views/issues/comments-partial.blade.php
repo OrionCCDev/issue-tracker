@@ -46,23 +46,6 @@
     </div>
 @endforelse
 
-<!-- Add Comment Form -->
-<div class="card mt-3">
-    <div class="card-body">
-        <form id="addCommentForm" action="{{ route('projects.issues.comments.store', [$issue->project_id, $issue->id]) }}" method="POST">
-            @csrf
-            <div class="form-group">
-                <label for="content">Add Your Comment</label>
-                <textarea class="form-control" id="content" name="description" rows="3" required></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary">
-                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                Post Comment
-            </button>
-        </form>
-    </div>
-</div>
-
 <!-- Edit Comment Modal -->
 <div class="modal fade" id="editCommentModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
@@ -95,49 +78,6 @@
 
 <script>
 $(document).ready(function() {
-    // Handle new comment submission
-    $('#addCommentForm').on('submit', function(e) {
-        e.preventDefault();
-        const form = $(this);
-        const button = form.find('button[type="submit"]');
-        const spinner = button.find('.spinner-border');
-        const textarea = form.find('textarea');
-        const commentContent = textarea.val().trim();
-
-        if (!commentContent) return;
-
-        button.prop('disabled', true);
-        spinner.removeClass('d-none');
-
-        $.ajax({
-            url: form.attr('action'),
-            type: 'POST',
-            data: form.serialize(),
-            success: function(response) {
-                // Clear the form
-                textarea.val('');
-
-                // Remove "No comments" message if it exists
-                if ($('.alert.alert-light').length) {
-                    $('.alert.alert-light').remove();
-                }
-
-                // Add the new comment to the list
-                $('.comment-item:first').before(response);
-
-                // Show success message
-                toastr.success('Comment added successfully');
-            },
-            error: function(xhr) {
-                toastr.error('Failed to add comment. Please try again.');
-            },
-            complete: function() {
-                button.prop('disabled', false);
-                spinner.addClass('d-none');
-            }
-        });
-    });
-
     // Handle edit comment
     $('.edit-comment').on('click', function(e) {
         e.preventDefault();
@@ -202,7 +142,7 @@ $(document).ready(function() {
 
                     // Show empty message if no comments left
                     if ($('.comment-item').length === 0) {
-                        $('.card.mt-3').before(`
+                        $('#commentsList').html(`
                             <div class="alert alert-light">
                                 No comments yet. Be the first to comment!
                             </div>

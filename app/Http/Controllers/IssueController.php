@@ -129,7 +129,7 @@ class IssueController extends Controller
     public function store(Request $request, Project $project = null)
     {
         // Debug logging
-        \Log::info('Issue creation request data:', [
+        Log::info('Issue creation request data:', [
             'all_request_data' => $request->all(),
             'assigned_to' => $request->input('assigned_to'),
             'is_array' => is_array($request->input('assigned_to')),
@@ -235,7 +235,7 @@ class IssueController extends Controller
 
     public function getIssue(Issue $issue)
     {
-        $issue->load(['assignees', 'project']);
+        $issue->load(['assignees', 'project', 'comments.user']);
 
         return response()->json([
             'success' => true,
@@ -246,7 +246,7 @@ class IssueController extends Controller
     public function storeProjectIssue(Request $request, Project $project)
     {
         // Debug logging
-        \Log::info('Issue creation via project route:', [
+        Log::info('Issue creation via project route:', [
             'all_request_data' => $request->all(),
             'assigned_to' => $request->input('assigned_to'),
             'is_array' => is_array($request->input('assigned_to')),
@@ -280,7 +280,24 @@ class IssueController extends Controller
             $issue->update(['is_read' => true]);
         }
 
-        $issue->load(['comments.user', 'creator', 'assignees', 'project.manager']);
+        // Load comments with eager loading and debug
+        try {
+            $issue->load(['comments.user', 'creator', 'assignees', 'project.manager']);
+            Log::info('Comments loaded for issue ' . $issue->id . ': ' . $issue->comments->count());
+            Log::info('Comments data: ' . json_encode($issue->comments->toArray()));
+            Log::info('Issue data: ' . json_encode($issue->toArray()));
+            
+            // Debug the issue ID and project ID
+            Log::info('Issue ID: ' . $issue->id);
+            Log::info('Project ID: ' . $issue->project_id);
+            
+            // Debug the comments relationship
+            Log::info('Comments relationship exists: ' . ($issue->relationLoaded('comments') ? 'true' : 'false'));
+            Log::info('Comments count from relationship: ' . $issue->comments()->count());
+        } catch (\Exception $e) {
+            Log::error('Error loading comments for issue ' . $issue->id . ': ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+        }
 
         return view('issues.show', compact('issue', 'project'));
     }

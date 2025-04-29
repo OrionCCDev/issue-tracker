@@ -152,12 +152,19 @@
                         </div>
 
                         <!-- Comments List -->
+                    
                         @forelse($issue->comments as $comment)
                             <div class="media mb-15">
                                 <div class="media-img-wrap mr-15">
                                     <div class="avatar avatar-sm">
-                                        <img src="{{ asset('storage/' . $comment->user->image_path) }}"
-                                            alt="user" class="avatar-img rounded-circle">
+                                        @if($comment->user->image_path && file_exists(public_path('storage/' . $comment->user->image_path)))
+                                            <img src="{{ asset('storage/' . $comment->user->image_path) }}"
+                                                alt="user" class="avatar-img rounded-circle">
+                                        @else
+                                            <div class="avatar-text rounded-circle bg-primary">
+                                                {{ substr($comment->user->name, 0, 1) }}
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="media-body">
@@ -414,6 +421,13 @@
 @section('custom_js')
 <script>
     $(document).ready(function() {
+        // Scroll to comments section if URL has #comments fragment
+        if (window.location.hash === '#comments') {
+            $('html, body').animate({
+                scrollTop: $('.hk-sec-title:contains("Comments")').offset().top - 100
+            }, 500);
+        }
+
         // Initialize Select2 for assigned_to multi-select dropdown
         $('#assigned_to').select2({
             placeholder: "Select assignees",

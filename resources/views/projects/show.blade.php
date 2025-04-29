@@ -531,8 +531,26 @@
                                             <span>&times;</span>
                                         </button>
                                     </div>
-                                    <div class="modal-body" id="commentsContent">
-                                        <!-- Comments will be loaded here -->
+                                    <div class="modal-body">
+                                        <div id="commentsList">
+                                            <!-- Comments will be loaded here -->
+                                        </div>
+                                        @if(Auth::user()->role === 'o-admin' || Auth::user()->role === 'cm' || Auth::user()->role === 'pm' || $project->members->contains(Auth::user()))
+                                        <div class="mt-4">
+                                            <form id="addCommentForm">
+                                                @csrf
+                                                <div class="form-group">
+                                                    <label for="commentContent">Add Your Comment</label>
+                                                    <textarea class="form-control" id="commentContent" name="description" rows="3" required placeholder="Type your comment here..."></textarea>
+                                                    <div class="invalid-feedback"></div>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary">
+                                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                                    Post Comment
+                                                </button>
+                                            </form>
+                                        </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -1174,23 +1192,110 @@
 
     // Functions for showing comments and history
     function showComments(issueId) {
+        // Clear any existing comments
+        $('#commentsList').empty();
+
+        // Show loading state
+        $('#commentsList').html('<div class="text-center"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></div>');
+
         $.ajax({
-            url: `/issues/${issueId}/comments`,
+            url: `/projects/{{ $project->id }}/issues/${issueId}/comments`,
             method: 'GET',
             success: function(response) {
-                $('#commentsContent').html(response);
+                $('#commentsList').html(response);
                 $('#commentsModal').modal('show');
+
+                // Initialize comment form handling
+                initCommentForm(issueId);
             },
             error: function() {
-                if (typeof toastr !== 'undefined') {
-                    toastr.error('Failed to load comments');
-                } else {
-                    Toast.fire({
-                        icon: 'error',
-                        title: 'Failed to load comments'
-                    });
-                }
+                $('#commentsList').html('<div class="alert alert-danger">Failed to load comments. Please try again.</div>');
             }
+        });
+    }
+
+    function initCommentForm(issueId) {
+        const form = $('#addCommentForm');
+        const textarea = form.find('textarea');
+        const button = form.find('button[type="submit"]');
+        const spinner = button.find('.spinner-border');
+        const invalidFeedback = form.find('.invalid-feedback');
+
+        // Clear any previous event handlers
+        form.off('submit');
+
+        form.on('submit', function(e) {
+            e.preventDefault();
+
+            const commentContent = textarea.val().trim();
+
+            // Reset validation state
+            textarea.removeClass('is-invalid');
+            invalidFeedback.text('');
+
+            if (!commentContent) {
+                textarea.addClass('is-invalid');
+                invalidFeedback.text('Please enter a comment');
+                return;
+            }
+
+            // Disable form and show loading state
+            button.prop('disabled', true);
+            spinner.removeClass('d-none');
+            textarea.prop('disabled', true);
+
+            $.ajax({
+                url: `/projects/{{ $project->id }}/issues/${issueId}/comments`,
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    description: commentContent
+                },
+                success: function(response) {
+                    // Clear the form
+                    textarea.val('');
+
+                    // Remove "No comments" message if it exists
+                    if ($('.alert.alert-light').length) {
+                        $('.alert.alert-light').remove();
+                    }
+
+                    // Add the new comment to the list
+                    $('#commentsList').prepend(response);
+
+                    // Show success message
+                    if (typeof toastr !== 'undefined') {
+                        toastr.success('Comment added successfully');
+                    } else {
+                        Toast.fire({
+                            icon: 'success',
+                            title: 'Comment added successfully'
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    let errorMessage = 'Failed to add comment';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error(errorMessage);
+                    } else {
+                        Toast.fire({
+                            icon: 'error',
+                            title: errorMessage
+                        });
+                    }
+                },
+                complete: function() {
+                    // Re-enable form
+                    button.prop('disabled', false);
+                    spinner.addClass('d-none');
+                    textarea.prop('disabled', false);
+                    textarea.focus();
+                }
+            });
         });
     }
 

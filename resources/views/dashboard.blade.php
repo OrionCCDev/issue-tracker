@@ -146,11 +146,13 @@
                             <h5 class="hk-sec-title">My Projects</h5>
                         @endif
                     </div>
-                    {{--  <div class="col-sm-6 text-right">
-                        <a href="{{ route('issues.my-issues') }}" class="btn btn-sm btn-outline-primary">
-                            View All My Project Issues
+                    @if(in_array(Auth::user()->role, ['pm', 'cm', 'gm']))
+                    <div class="col-sm-6 text-right">
+                        <a href="{{ route('projects.create') }}" class="btn btn-sm btn-primary">
+                            <i class="fa fa-plus"></i> Create New Project
                         </a>
-                    </div>  --}}
+                    </div>
+                    @endif
                 </div>
                 <div class="row">
                     @forelse($myProjects as $project)

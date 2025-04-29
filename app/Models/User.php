@@ -90,4 +90,39 @@ class User extends Authenticatable
     {
         return $this->notifications()->whereNull('read_at');
     }
+
+    public function canCommentOnIssue(Project $project, Issue $issue)
+    {
+        // Admin users can always comment
+        if ($this->role === 'o-admin') {
+            return true;
+        }
+
+        // Project manager can always comment on their project's issues
+        if ($this->id === $project->manager_id) {
+            return true;
+        }
+
+        // CM users can comment on any issue
+        if ($this->role === 'cm') {
+            return true;
+        }
+
+        // Project members can comment on issues in their project
+        if ($project->members->contains($this)) {
+            return true;
+        }
+
+        // Issue assignees can comment on their assigned issues
+        if ($issue->assignees->contains($this)) {
+            return true;
+        }
+
+        // Issue creator can comment on their own issues
+        if ($issue->created_by === $this->id) {
+            return true;
+        }
+
+        return false;
+    }
 }

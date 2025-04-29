@@ -105,8 +105,14 @@
                 <div class="media mb-3">
                     <div class="media-img-wrap mr-3">
                         <div class="avatar avatar-sm">
-                            <img src="{{ asset('assets/images/users/' . $comment->user->image_path) }}"
-                                alt="user" class="avatar-img rounded-circle">
+                            @if($comment->user->image_path && file_exists(public_path('storage/' . $comment->user->image_path)))
+                                <img src="{{ asset('storage/' . $comment->user->image_path) }}"
+                                    alt="user" class="avatar-img rounded-circle">
+                            @else
+                                <div class="avatar-text rounded-circle bg-primary">
+                                    {{ substr($comment->user->name, 0, 1) }}
+                                </div>
+                            @endif
                         </div>
                     </div>
                     <div class="media-body">

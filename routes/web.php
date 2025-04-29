@@ -55,8 +55,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
     });
 
-    // Projects Creation/Deletion (Admin and CM only)
-    Route::middleware('role:o-admin|cm')->group(function () {
+    // Projects Creation/Deletion (Admin, CM, GM and PM only)
+    Route::middleware('role:o-admin|cm|gm|pm')->group(function () {
         Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
         Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
         Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
@@ -124,6 +124,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Comments Routes
     Route::post('projects/{project}/issues/{issue}/comments', [CommentController::class, 'store'])->name('projects.issues.comments.store');
+    Route::get('projects/{project}/issues/{issue}/comments', [CommentController::class, 'index'])->name('projects.issues.comments.index');
     Route::post('projects/{project}/issues/{issue}/comments/{comment}/update', [CommentController::class, 'update'])->name('projects.issues.comments.update');
     Route::post('projects/{project}/issues/{issue}/comments/{comment}/delete', [CommentController::class, 'destroy'])->name('projects.issues.comments.destroy');
 });

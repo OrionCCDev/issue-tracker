@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class Issue extends Model
 {
@@ -43,7 +44,11 @@ class Issue extends Model
 
     public function comments()
     {
-        return $this->hasMany(Comment::class);
+        Log::info('Accessing comments relationship for issue ' . $this->id);
+        $comments = $this->hasMany(Comment::class);
+        Log::info('Comments query: ' . $comments->toSql());
+        Log::info('Comments bindings: ' . json_encode($comments->getBindings()));
+        return $comments;
     }
 
     /**

@@ -7,7 +7,7 @@
         <div>
             <h2 class="hk-pg-title font-weight-600 mb-10">Projects Management</h2>
         </div>
-        @if(Auth::user()->role === 'o-admin' || Auth::user()->role === 'cm')
+        @if(in_array(Auth::user()->role, ['o-admin', 'cm', 'gm', 'pm']))
         <div class="d-flex">
             <a href="{{ route('projects.create') }}" class="btn btn-primary btn-sm">Add New Project</a>
         </div>

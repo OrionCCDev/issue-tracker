@@ -24,6 +24,11 @@ class CheckRole
 
         $user = Auth::user();
 
+        // CM, GM and PM have access to create projects
+        if (in_array($user->role, ['cm', 'gm', 'pm']) && str_contains($request->path(), 'projects/create')) {
+            return $next($request);
+        }
+
         // CM and GM have access to all projects and data
         if (in_array($user->role, ['cm', 'gm']) && !str_contains($request->path(), 'users')) {
             return $next($request);

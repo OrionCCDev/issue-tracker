@@ -76,14 +76,14 @@
                                                     <form action="{{ route('notifications.mark-as-unread', $notification->id) }}" method="POST">
                                                         @csrf
                                                         <button type="submit" class="btn btn-outline-secondary btn-sm">
-                                                            <i class="fa fa-envelope"></i>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M502.3 190.8c3.9-3.1 9.7-.2 9.7 4.7V400c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V195.6c0-5 5.7-7.8 9.7-4.7 22.4 17.4 52.1 39.5 154.1 113.6 21.1 15.4 56.7 47.8 92.2 47.6 35.7 .3 72-32.8 92.3-47.6 102-74.1 131.6-96.3 154-113.7zM256 320c23.2 .4 56.6-29.2 73.4-41.4 132.7-96.3 142.8-104.7 173.4-128.7 5.8-4.5 9.2-11.5 9.2-18.9v-19c0-26.5-21.5-48-48-48H48C21.5 64 0 85.5 0 112v19c0 7.4 3.4 14.3 9.2 18.9 30.6 23.9 40.7 32.4 173.4 128.7 16.8 12.2 50.2 41.8 73.4 41.4z"/></svg>
                                                         </button>
                                                     </form>
                                                 @else
                                                     <form action="{{ route('notifications.mark-as-read', $notification->id) }}" method="POST">
                                                         @csrf
                                                         <button type="submit" class="btn btn-outline-success btn-sm">
-                                                            <i class="fa fa-envelope-open"></i>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M176 216h160c8.8 0 16-7.2 16-16v-16c0-8.8-7.2-16-16-16H176c-8.8 0-16 7.2-16 16v16c0 8.8 7.2 16 16 16zm-16 80c0 8.8 7.2 16 16 16h160c8.8 0 16-7.2 16-16v-16c0-8.8-7.2-16-16-16H176c-8.8 0-16 7.2-16 16v16zm96 121.1c-16.4 0-32.8-5.1-46.9-15.2L0 250.9V464c0 26.5 21.5 48 48 48h416c26.5 0 48-21.5 48-48V250.9L302.9 401.9c-14 10.1-30.4 15.2-46.9 15.2zm237.6-254.2c-8.9-6.9-17.2-13.5-29.6-22.8V96c0-26.5-21.5-48-48-48h-77.6c-3-2.2-5.9-4.3-9-6.6C312.6 29.2 279.2-.4 256 0c-23.2-.4-56.6 29.2-73.4 41.4-3.2 2.3-6 4.4-9 6.6H96c-26.5 0-48 21.5-48 48v44.1c-12.4 9.3-20.8 15.9-29.6 22.8A48 48 0 0 0 0 200.7v10.7l96 69.4V96h320v184.7l96-69.4v-10.7c0-14.7-6.8-28.7-18.4-37.8z"/></svg>
                                                         </button>
                                                     </form>
                                                 @endif

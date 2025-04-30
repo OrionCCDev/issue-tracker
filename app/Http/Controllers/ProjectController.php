@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Services\NotificationService;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ProjectController extends Controller
 {
@@ -460,6 +461,19 @@ class ProjectController extends Controller
         });
 
         return response()->json($membersWithManagerFlag);
+    }
+
+    public function exportPdf(Project $project)
+    {
+        $issues = $project->issues()->with('assignees')->get();
+        $project->load('members');
+
+        $pdf = PDF::loadView('projects.pdf.export', [
+            'project' => $project,
+            'issues' => $issues
+        ]);
+
+        return $pdf->download("{$project->code}_project_report.pdf");
     }
 }
 

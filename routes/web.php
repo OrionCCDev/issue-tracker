@@ -127,4 +127,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('projects/{project}/issues/{issue}/comments', [CommentController::class, 'index'])->name('projects.issues.comments.index');
     Route::post('projects/{project}/issues/{issue}/comments/{comment}/update', [CommentController::class, 'update'])->name('projects.issues.comments.update');
     Route::post('projects/{project}/issues/{issue}/comments/{comment}/delete', [CommentController::class, 'destroy'])->name('projects.issues.comments.destroy');
+
+    // Export PDF route
+    Route::get('/projects/{project}/export-pdf', [ProjectController::class, 'exportPdf'])->name('projects.export-pdf');
 });

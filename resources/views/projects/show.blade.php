@@ -9,6 +9,13 @@
                     <span>{{ $project->name }} ({{ $project->code }})</span>
                     <div>
                         {{--  <a href="{{ route('projects.edit', $project) }}" class="btn btn-primary btn-sm">Edit Project</a>  --}}
+                        <button id="exportPdfBtn" class="btn btn-info btn-sm" style="
+                        background-color: #b6150c;
+                        border-radius: 5px;
+                        padding: 5px 10px;
+                    ">
+                            <i class="fa fa-file-pdf-o"></i> Export PDF
+                        </button>
                         <a href="{{ route('projects.index') }}" class="btn btn-secondary btn-sm">Back to List</a>
                     </div>
                 </div>
@@ -1319,6 +1326,25 @@
             }
         });
     }
+
+    // Export PDF functionality
+    $('#exportPdfBtn').on('click', function() {
+        const $button = $(this);
+        const originalHtml = $button.html();
+
+        // Show loading state
+        $button.prop('disabled', true);
+        $button.html('<i class="fa fa-spinner fa-spin"></i> Generating PDF...');
+
+        // Make the request
+        window.location.href = '{{ route("projects.export-pdf", $project) }}';
+
+        // Reset button state after a delay
+        setTimeout(() => {
+            $button.prop('disabled', false);
+            $button.html(originalHtml);
+        }, 2000);
+    });
 </script>
 
 @endsection

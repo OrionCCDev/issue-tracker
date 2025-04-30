@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{{ $project->name }} - Project Report</title>
+    <!-- Bootstrap 4 CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #45bddb;
+        }
+        .header h1 {
+            color: #45bddb;
+            margin-bottom: 10px;
+        }
+        .section h2 {
+            color: #45bddb;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #45bddb;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            color: #333;
+            font-size: 15px;
+        }
+        .info-card {
+            height: 100%;
+            transition: all 0.2s ease-in-out;
+        }
+        .info-card:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .table-header {
+            background-color: #45bddb;
+            color: white;
+        }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-open { background-color: #ffeeba; color: #856404; }
+        .status-in_progress { background-color: #b8daff; color: #004085; }
+        .status-resolved { background-color: #c3e6cb; color: #155724; }
+        
+        .priority-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .priority-low { background-color: #d4edda; color: #155724; }
+        .priority-medium { background-color: #fff3cd; color: #856404; }
+        .priority-high { background-color: #f8d7da; color: #721c24; }
+        .priority-critical { background-color: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <!-- Header -->
+        <div class="header">
+            <h1>{{ $project->name }}</h1>
+            <p class="mb-1">Project Code: {{ $project->code }}</p>
+            <p class="mb-1">Project Manager: {{ $project->manager->name ?? 'Not assigned' }}</p>
+            <p>Generated on: {{ now()->format('F j, Y') }}</p>
+        </div>
+
+        <!-- Project Details -->
+        <div class="section mb-5">
+            <h2>Project Details</h2>
+            <div class="card mb-4">
+                <div class="card-body bg-light">
+                    <!-- Row 1: Duration and Dates -->
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <div class="card info-card">
+                                <div class="card-body">
+                                    <div class="info-label">Duration (days)</div>
+                                    <div class="info-value">{{ $project->duration ?? 'Not set' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card info-card">
+                                <div class="card-body">
+                                    <div class="info-label">Commencement Date</div>
+                                    <div class="info-value">{{ $project->commencement_date ? $project->commencement_date->format('F j, Y') : 'Not set' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card info-card">
+                                <div class="card-body">
+                                    <div class="info-label">Completion Date</div>
+                                    <div class="info-value">{{ $project->completion_date ? $project->completion_date->format('F j, Y') : 'Not set' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Project Value and Billing -->
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <div class="card info-card">
+                                <div class="card-body">
+                                    <div class="info-label">Project Value</div>
+                                    <div class="info-value">{{ $project->project_value ? number_format($project->project_value, 2) : 'Not set' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card info-card">
+                                <div class="card-body">
+                                    <div class="info-label">Total Billed</div>
+                                    <div class="info-value">{{ $project->total_billed ? number_format($project->total_billed, 2) : 'Not set' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card info-card">
+                                <div class="card-body">
+                                    <div class="info-label">Remaining Unbilled</div>
+                                    <div class="info-value">{{ $project->remaining_unbilled ? number_format($project->remaining_unbilled, 2) : 'Not set' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Planned and Actual Values -->
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <div class="card info-card">
+                                <div class="card-body">
+                                    <div class="info-label">Planned Value</div>
+                                    <div class="info-value">{{ $project->planned_value ? number_format($project->planned_value, 2) : 'Not set' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card info-card">
+                                <div class="card-body">
+                                    <div class="info-label">Actual Value</div>
+                                    <div class="info-value">{{ $project->actual_value ? number_format($project->actual_value, 2) : 'Not set' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card info-card">
+                                <div class="card-body">
+                                    <div class="info-label">Variance</div>
+                                    <div class="info-value">{{ $project->variance ? number_format($project->variance, 2) : 'Not set' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Expected Invoice Details -->
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <div class="card info-card">
+                                <div class="card-body">
+                                    <div class="info-label">Expected Invoice Month</div>
+                                    <div class="info-value">{{ $project->expected_invoice_month ?? 'Not set' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card info-card">
+                                <div class="card-body">
+                                    <div class="info-label">Expected Invoice Date</div>
+                                    <div class="info-value">{{ $project->expected_invoice_date ? $project->expected_invoice_date->format('F j, Y') : 'Not set' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card info-card">
+                                <div class="card-body">
+                                    <div class="info-label">Expected Invoice</div>
+                                    <div class="info-value">{{ $project->expected_invoice ? number_format($project->expected_invoice, 2) : 'Not set' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 5: Time Tracking -->
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <div class="card info-card">
+                                <div class="card-body">
+                                    <div class="info-label">Time Elapsed (days)</div>
+                                    <div class="info-value">{{ $project->time_elapsed ?? 'Not set' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card info-card">
+                                <div class="card-body">
+                                    <div class="info-label">Time Balance (days)</div>
+                                    <div class="info-value">{{ $project->time_balance ?? 'Not set' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <!-- Empty card for alignment -->
+                            <div class="card info-card">
+                                <div class="card-body d-flex align-items-center justify-content-center text-muted">
+                                    <small><em>No data</em></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 6: Variation Details -->
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <div class="card info-card">
+                                <div class="card-body">
+                                    <div class="info-label">Variation Status</div>
+                                    <div class="info-value">{{ $project->variation_status ?? 'Not set' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card info-card">
+                                <div class="card-body">
+                                    <div class="info-label">Variation Number</div>
+                                    <div class="info-value">{{ $project->variation_number ?? 'Not set' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <!-- Empty card for alignment -->
+                            <div class="card info-card">
+                                <div class="card-body d-flex align-items-center justify-content-center text-muted">
+                                    <small><em>No data</em></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 7: EOT and NCRs -->
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <div class="card info-card">
+                                <div class="card-body">
+                                    <div class="info-label">EOT Status</div>
+                                    <div class="info-value">{{ $project->eot_status ?? 'Not set' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card info-card">
+                                <div class="card-body">
+                                    <div class="info-label">NCRs Status</div>
+                                    <div class="info-value">{{ $project->ncrs_status ?? 'Not set' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <!-- Empty card for alignment -->
+                            <div class="card info-card">
+                                <div class="card-body d-flex align-items-center justify-content-center text-muted">
+                                    <small><em>No data</em></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 8: Current and Previous Invoice -->
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <div class="card info-card">
+                                <div class="card-body">
+                                    <div class="info-label">Current Invoice Status</div>
+                                    <div class="info-value">{{ $project->current_invoice_status ?? 'Not set' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card info-card">
+                                <div class="card-body">
+                                    <div class="info-label">Current Invoice Value</div>
+                                    <div class="info-value">{{ $project->current_invoice_value ? number_format($project->current_invoice_value, 2) : 'Not set' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card info-card">
+                                <div class="card-body">
+                                    <div class="info-label">Previous Invoice Status</div>
+                                    <div class="info-value">{{ $project->previous_invoice_status ?? 'Not set' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 9: Previous Invoice Value -->
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <div class="card info-card">
+                                <div class="card-body">
+                                    <div class="info-label">Previous Invoice Value</div>
+                                    <div class="info-value">{{ $project->previous_invoice_value ? number_format($project->previous_invoice_value, 2) : 'Not set' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <!-- Empty card for alignment -->
+                            <div class="card info-card">
+                                <div class="card-body d-flex align-items-center justify-content-center text-muted">
+                                    <small><em>No data</em></small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <!-- Empty card for alignment -->
+                            <div class="card info-card">
+                                <div class="card-body d-flex align-items-center justify-content-center text-muted">
+                                    <small><em>No data</em></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="card mt-4">
+                        <div class="card-header bg-light">
+                            <div class="info-label mb-0">Description</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-value">{{ $project->description ?? 'No description provided' }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Issues Overview -->
+        <div class="section mb-5">
+            <h2>Issues Overview</h2>
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr class="table-header">
+                                    <th>Title</th>
+                                    <th>Status</th>
+                                    <th>Priority</th>
+                                    <th>Assignees</th>
+                                    <th>Target Date</th>
+                                    <th>Actual Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($issues as $issue)
+                                <tr>
+                                    <td>{{ $issue->title }}</td>
+                                    <td>
+                                        <span class="status-badge status-{{ $issue->status }}">
+                                            {{ ucfirst(str_replace('_', ' ', $issue->status)) }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="priority-badge priority-{{ $issue->priority }}">
+                                            {{ ucfirst($issue->priority) }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @foreach($issue->assignees as $assignee)
+                                            {{ $assignee->name }}@if(!$loop->last), @endif
+                                        @endforeach
+                                    </td>
+                                    <td>{{ $issue->target_resolution_date ? $issue->target_resolution_date->format('Y-m-d') : '-' }}</td>
+                                    <td>{{ $issue->actual_resolution_date ? $issue->actual_resolution_date->format('Y-m-d') : '-' }}</td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="6" class="text-center">No issues found</td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center text-muted small mt-5 pt-3 border-top">
+            <p>Generated by Issue Tracker System</p>
+        </footer>
+    </div>
+
+    <!-- Bootstrap 4 JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

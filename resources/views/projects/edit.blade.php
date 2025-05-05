@@ -56,7 +56,7 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label for="duration" class="col-form-label">Duration (days)</label>
+                                    <label for="duration" class="col-form-label">Duration (Months)</label>
                                     <input id="duration" type="number" class="form-control @error('duration') is-invalid @enderror" name="duration" value="{{ old('duration', $project->duration) }}">
                                     @error('duration')
                                         <span class="invalid-feedback" role="alert">

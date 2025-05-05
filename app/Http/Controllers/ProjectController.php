@@ -95,6 +95,7 @@ class ProjectController extends Controller
             // Expected Invoice
             'expected_invoice_date' => 'nullable|date',
             'expected_invoice_month' => 'nullable|string|max:255',
+            'expected_invoice' => 'nullable|string|max:255',
         ]);
 
         $project = Project::create($validated);
@@ -247,6 +248,7 @@ class ProjectController extends Controller
             // Expected Invoice
             'expected_invoice_date' => 'nullable|date',
             'expected_invoice_month' => 'nullable|string|max:255',
+            'expected_invoice' => 'nullable|string|max:255',
         ]);
 
         // Update the project

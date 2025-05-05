@@ -126,6 +126,15 @@
                                         </span>
                                     @enderror
                                 </div>
+                                <div class="form-group">
+                                    <label for="expected_invoice">Expected Invoice Month</label>
+                                    <input id="expected_invoice" type="text" class="form-control @error('expected_invoice') is-invalid @enderror" name="expected_invoice" value="{{ old('expected_invoice') }}">
+                                    @error('expected_invoice')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
 
                                 <h5 class="mb-3 mt-4">Previous Invoice</h5>
 

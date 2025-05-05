@@ -34,7 +34,8 @@ class Project extends Model
         'previous_invoice_value',
         'previous_invoice_month',
         'expected_invoice_date',
-        'expected_invoice_month'
+        'expected_invoice_month',
+        'expected_invoice'
     ];
 
     protected $casts = [

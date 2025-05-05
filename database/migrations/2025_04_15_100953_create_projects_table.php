@@ -54,6 +54,7 @@ return new class extends Migration
             // Expected Invoice
             $table->date('expected_invoice_date')->nullable();
             $table->string('expected_invoice_month')->nullable();
+            $table->string('expected_invoice')->nullable();
 
             $table->timestamps();
         });

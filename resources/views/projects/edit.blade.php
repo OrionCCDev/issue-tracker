@@ -264,7 +264,7 @@
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="expected_invoice" class="col-form-label">Expected Invoice</label>
-                                    <input id="expected_invoice" type="number" step="0.01" class="form-control @error('expected_invoice') is-invalid @enderror" name="expected_invoice" value="{{ old('expected_invoice', $project->expected_invoice) }}">
+                                    <input id="expected_invoice" type="text" class="form-control @error('expected_invoice') is-invalid @enderror" name="expected_invoice" value="{{ old('expected_invoice', $project->expected_invoice) }}">
                                     @error('expected_invoice')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
@@ -350,6 +350,32 @@
 
 @section('custom_js')
 <script>
+function calculateTimeBalance() {
+    const completionDate = new Date(document.getElementById('completion_date').value);
+    const today = new Date();
+
+    // Reset hours to midnight for accurate day calculation
+    today.setHours(0, 0, 0, 0);
+    completionDate.setHours(0, 0, 0, 0);
+
+    // Calculate difference in days
+    const diffTime = completionDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    // Update the time balance input
+    const timeBalanceInput = document.getElementById('time_balance');
+    timeBalanceInput.value = diffDays;
+
+    // Change background color based on time balance
+    if (diffDays < 0) {
+        timeBalanceInput.classList.add('bg-danger', 'text-white');
+        timeBalanceInput.classList.remove('bg-light');
+    } else {
+        timeBalanceInput.classList.remove('bg-danger', 'text-white');
+        timeBalanceInput.classList.add('bg-light');
+    }
+}
+
 function calculateVariance() {
     const plannedPercentage = parseFloat(document.getElementById('planned_percentage').value) || 0;
     const actualPercentage = parseFloat(document.getElementById('actual_percentage').value) || 0;
@@ -390,6 +416,7 @@ function calculateRemainingUnbilled() {
 document.addEventListener('DOMContentLoaded', function() {
     calculateVariance();
     calculateRemainingUnbilled();
+    calculateTimeBalance();
 });
 
 // Calculate on input to make it more responsive
@@ -397,6 +424,7 @@ document.getElementById('planned_percentage').addEventListener('input', calculat
 document.getElementById('actual_percentage').addEventListener('input', calculateVariance);
 document.getElementById('project_value').addEventListener('input', calculateRemainingUnbilled);
 document.getElementById('total_billed').addEventListener('input', calculateRemainingUnbilled);
+document.getElementById('completion_date').addEventListener('change', calculateTimeBalance);
 
 // Add AJAX form submission
 $(document).ready(function() {
@@ -408,13 +436,18 @@ $(document).ready(function() {
         if (isSubmitting) return;
 
         const $form = $(this);
-        const $submitBtn = $('#updateProjectBtn');
+        const $submitBtn = $('.updateBtn');
         const $buttonText = $submitBtn.find('.button-text');
+        const $spinner = $submitBtn.find('.spinner-border');
 
         // Show loading state
         isSubmitting = true;
         $submitBtn.prop('disabled', true);
-        $buttonText.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...');
+        $buttonText.addClass('d-none');
+        $spinner.removeClass('d-none');
+
+        // Calculate time balance before submission
+        calculateTimeBalance();
 
         // Collect form data
         const formData = new FormData(this);
@@ -452,7 +485,8 @@ $(document).ready(function() {
         function resetButtonState() {
             isSubmitting = false;
             $submitBtn.prop('disabled', false);
-            $buttonText.text('Update Project');
+            $buttonText.removeClass('d-none');
+            $spinner.addClass('d-none');
         }
     });
 

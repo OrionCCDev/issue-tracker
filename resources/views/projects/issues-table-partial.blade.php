@@ -138,5 +138,45 @@ function updateIssueField(element, field) {
         element.disabled = false;
     });
 }
+
+// Add delete issue functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteButtons = document.querySelectorAll('.delete-issue');
+
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const issueId = this.dataset.issueId;
+
+            if (confirm('Are you sure you want to delete this issue?')) {
+                // Show loading state
+                this.disabled = true;
+
+                // Send delete request
+                fetch(`/issues/${issueId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove the row from the table
+                        this.closest('tr').remove();
+                        toastr.success('Issue deleted successfully');
+                    } else {
+                        toastr.error(data.message || 'Error deleting issue');
+                    }
+                })
+                .catch(error => {
+                    toastr.error('Error deleting issue');
+                })
+                .finally(() => {
+                    this.disabled = false;
+                });
+            }
+        });
+    });
+});
 </script>
 @endpush

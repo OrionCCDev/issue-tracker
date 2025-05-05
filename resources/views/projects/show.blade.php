@@ -514,6 +514,11 @@
                                             disabled>
                                       <i class="fa fa-save"></i>
                                     </button>
+                                    <button type="button"
+                                            class="btn btn-sm btn-danger delete-issue"
+                                            data-issue-id="{{ $issue->id }}">
+                                      <i class="fa fa-trash"></i>
+                                    </button>
                                   </div>
                                 </td>
                               </tr>
@@ -1344,6 +1349,93 @@
             $button.prop('disabled', false);
             $button.html(originalHtml);
         }, 2000);
+    });
+
+    // Add delete issue functionality
+    $(document).ready(function() {
+        // Handle delete button clicks using event delegation
+        $(document).on('click', '.delete-issue', function() {
+            const issueId = $(this).data('issue-id');
+            const $button = $(this);
+            const $row = $button.closest('tr');
+
+            if (confirm('Are you sure you want to delete this issue?')) {
+                // Show loading state
+                $button.prop('disabled', true);
+                $button.html('<i class="fa fa-spinner fa-spin"></i>');
+
+                // Send delete request using jQuery AJAX
+                $.ajax({
+                    url: `{{ url('issues') }}/${issueId}`,
+                    method: 'POST',
+                    data: {
+                        _method: 'DELETE',
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        // Remove the row from the table with animation
+                        $row.fadeOut(300, function() {
+                            $(this).remove();
+
+                            // Check if there are no more issues
+                            if ($('.issues-table tbody tr').length === 0) {
+                                $('.issues-table tbody').html(`
+                                    <tr>
+                                        <td colspan="9" class="text-center">
+                                            <div class="alert alert-light">No issues found for this project.</div>
+                                        </td>
+                                    </tr>
+                                `);
+                            }
+                        });
+
+                        // Show success message
+                        if (typeof toastr !== 'undefined') {
+                            toastr.success('Issue deleted successfully');
+                        } else {
+                            Toast.fire({
+                                icon: 'success',
+                                title: 'Issue deleted successfully'
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Delete error details:', {
+                            status: xhr.status,
+                            statusText: xhr.statusText,
+                            responseText: xhr.responseText,
+                            error: error
+                        });
+
+                        let errorMessage = 'Error deleting issue';
+                        try {
+                            if (xhr.responseJSON) {
+                                errorMessage = xhr.responseJSON.message || errorMessage;
+                            } else if (xhr.responseText) {
+                                const response = JSON.parse(xhr.responseText);
+                                errorMessage = response.message || errorMessage;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing response:', e);
+                        }
+
+                        // Reset button state
+                        $button.prop('disabled', false);
+                        $button.html('<i class="fa fa-trash"></i>');
+
+                        // Show error message
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error(errorMessage);
+                        } else {
+                            Toast.fire({
+                                icon: 'error',
+                                title: errorMessage
+                            });
+                        }
+                    }
+                });
+            }
+        });
     });
 </script>
 

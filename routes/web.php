@@ -9,6 +9,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PortfolioController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,6 +27,9 @@ Route::get('/', function () {
     // If user is logged in, redirect to dashboard, otherwise show login page
     return redirect()->route('login');
 });
+
+// Portfolio page (public)
+Route::get('/portfolio', [PortfolioController::class, 'index'])->name('portfolio');
 
 // Authentication Routes (provided by Laravel Breeze)
 require __DIR__.'/auth.php';
